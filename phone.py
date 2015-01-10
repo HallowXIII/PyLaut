@@ -15,6 +15,7 @@ class Phone(object):
     _FALSE_FEATURE = False
     _NULL_FEATURE = None
     _possible_feature_values = [_TRUE_FEATURE, _FALSE_FEATURE, _NULL_FEATURE]
+    
     #stores whether the feature set defines an IPA lookup table
     _FEATURE_SET_IPA_LOOKUP = False
     _feature_set_ipa_dict = dict()    
@@ -76,22 +77,13 @@ class Phone(object):
                 feature_set_ipa_val = line.split()
                 Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
 
+    
+    def clear_features(self):
+        """
+        Clears the entries of self.features.
+        """
+        self.features = {x: None for x in self.feature_set}
 
-    def set_features_from_ipa(self,ipa_char):
-        """
-        Takes Unicode IPA symbol and automagically assigns appropriate featural 
-        values to Phone
-        """
-        ipa_char_features = Phone._feature_set_ipa_dict[ipa_char]
-        for i in range(len(self.feature_set)):
-            if ipa_char_feature[i] == "+":
-                set_features_true(self.feature_set[i])
-            elif ipa_char_feature[i] == "-":
-                set_features_false(self.feature_set[i])
-            else:
-                set_features_null(self.feature_set[i])
-        
-        
     def set_feature(self,feature_name,feature_value):
         """
         Sets the feature_name of the Phone to value feature_quality
@@ -143,7 +135,26 @@ class Phone(object):
         Sets the feature_name of the Phone to be null/0
         """
         self.set_features_bool(feature_names,Phone._NULL_FEATURE)
-               
+
+    def set_features_from_ipa(self,ipa_char):
+        """
+        Takes Unicode IPA symbol and automagically assigns appropriate featural 
+        values to Phone
+        """
+        ipa_char_features = Phone._feature_set_ipa_dict[ipa_char]
+        
+        #clear the features dict to prepare for the IPA data [which should be
+        #complete + contain a value for all features]
+        self.clear_features()
+        
+        for i in range(len(self.feature_set)):
+            if ipa_char_features[i] == "+":
+                self.set_features_true(self.feature_set[i])
+            elif ipa_char_features[i] == "-":
+                self.set_features_false(self.feature_set[i])
+            else:
+                self.set_features_null(self.feature_set[i])
+                   
 class MicroPhone(Phone):
     """
     MicroPhones are Phones which use the MICROMONOPHONE feature-set. For further 
@@ -154,8 +165,10 @@ class MicroPhone(Phone):
         self.load_set_feature_set("micromonophone")
 
 lol = MicroPhone()
-lol.set_features_true(["consonantal","voice"])
-lol.set_features_false("labial")
+
+#lol.set_features_true(["consonantal","voice"])
+lol.set_features_true("labial")
+lol.set_features_from_ipa("t")
 
 #the raw feature dict, don't do this
 print(lol.features)
