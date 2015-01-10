@@ -14,7 +14,10 @@ class Phone(object):
     _TRUE_FEATURE = True
     _FALSE_FEATURE = False
     _NULL_FEATURE = None
-    _possible_feature_values = [_TRUE_FEATURE, _FALSE_FEATURE, _NULL_FEATURE]    
+    _possible_feature_values = [_TRUE_FEATURE, _FALSE_FEATURE, _NULL_FEATURE]
+    #stores whether the feature set defines an IPA lookup table
+    _FEATURE_SET_IPA_LOOKUP = False
+    _feature_set_ipa_dict = dict()    
         
     def __init__(self):
         self.feature_set_name = None
@@ -24,9 +27,6 @@ class Phone(object):
         self.features = dict()
         #representation of the Phone
         self.symbol = "0"
-		#stores whether the feature set defines an IPA lookup table
-		self.feature_set_ipa_lookup = False
-		self.feature_set_ipa_dict = dict()
         
     def __repr__(self):
         """
@@ -53,10 +53,10 @@ class Phone(object):
         """
         feature_set_raw = open(feature_set_file_name,"r").read().splitlines()
         feature_set_name = feature_set_raw[0]
-		if feature_set_raw[1]:
-		    if feature_set_raw[1] != "0"
-			    feature_set_ipa_lookup = True
-		        feature_set_ipa_filename = feature_set_raw[1]
+        if feature_set_raw[1]:
+            if feature_set_raw[1] != "0":
+                Phone._FEATURE_SET_IPA_LOOKUP = True
+                feature_set_ipa_filename = feature_set_raw[1]
         feature_set = [line for line in feature_set_raw if line and 
                        line[0] == "[" and line[-1] == "]" ]
         feature_set = [line[1:-1] for line in feature_set]
@@ -65,30 +65,32 @@ class Phone(object):
         self.feature_set_name = feature_set_name
         self.feature_set = feature_set
         self.features = {x: None for x in self.feature_set}
-		#does the feature set specify ipa lookup?
-		if feature_set_ipa_lookup:
-		try:
-		    feature_set_ipa_vals_raw = open(feature_set_ipa_filename,"r").read().splitlines()
-		except IOError:
-		    raise Exception("Invalid IPA lookup file!")
-		for line in feature_set_ipa_vals_raw:
-		    if line:
-		        feature_set_ipa_val = line.split()
-			    self.feature_set_ipa_dict(feature_set_ipa_val[0]) = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]
-		
-        
+        #does the feature set specify ipa lookup?
+        if Phone._FEATURE_SET_IPA_LOOKUP and not Phone._feature_set_ipa_dict:
+            try:
+                feature_set_ipa_vals_raw = open(feature_set_ipa_filename,"r").read().splitlines()
+            except IOError:
+                raise Exception("Invalid IPA lookup file!")
+        for line in feature_set_ipa_vals_raw[1:]:
+            if line:
+                feature_set_ipa_val = line.split()
+                Phone._feature_set_ipa_dict(feature_set_ipa_val[0]) = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]
+
+
     def set_features_from_ipa(self,ipa_char):
         """
         Takes Unicode IPA symbol and automagically assigns appropriate featural 
         values to Phone
         """
-		ipa_char_features = self.feature_set_ipa_dict[ipa_char]
-		for feature in ipa_char_features:
-		    if feature == "+":
-			    
-		    
-		
-		
+        ipa_char_features = Phone._feature_set_ipa_dict[ipa_char]
+        for i in range(len(self.feature_set)):
+            if ipa_char_feature[i] == "+":
+                set_features_true(self.feature_set[i])
+            elif ipa_char_feature[i] == "-":
+                set_features_false(self.feature_set[i])
+            else:
+                set_features_null(self.feature_set[i])
+        
         
     def set_feature(self,feature_name,feature_value):
         """

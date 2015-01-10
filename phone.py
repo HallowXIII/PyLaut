@@ -74,7 +74,7 @@ class Phone(object):
         for line in feature_set_ipa_vals_raw[1:]:
             if line:
                 feature_set_ipa_val = line.split()
-                Phone._feature_set_ipa_dict(feature_set_ipa_val[0]) = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]
+                Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
 
 
     def set_features_from_ipa(self,ipa_char):
@@ -83,7 +83,7 @@ class Phone(object):
         values to Phone
         """
         ipa_char_features = Phone._feature_set_ipa_dict[ipa_char]
-        for i in range(len(self.feature_set):
+        for i in range(len(self.feature_set)):
             if ipa_char_feature[i] == "+":
                 set_features_true(self.feature_set[i])
             elif ipa_char_feature[i] == "-":
