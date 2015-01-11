@@ -8,8 +8,6 @@ class Phone(object):
     They are a collection [dictionary + canonical order] of phonological features
     with extra structure to make manipulating them easier.
     """
-    
-    
     #the values features can take.
     _TRUE_FEATURE = "+"
     _FALSE_FEATURE = "-"
@@ -208,6 +206,7 @@ class Phone(object):
                 
         return (distant_symbols,len(distant_symbols))
 
+
     def get_feature_list(self):
         """
         Returns a list of the values of features from self.features, using the 
@@ -217,6 +216,7 @@ class Phone(object):
         for feature in self.feature_set:
             feature_list += [self.features[feature]]
         return feature_list
+
         
     def is_good_ipa(self):
         """
@@ -237,7 +237,12 @@ class Phone(object):
         else:
             return matching_symbols[0]
             
-    
+    def set_symbol_from_features(self):
+        """
+        Sets self.symbol using get_ipa_from_features
+        """
+        self.symbol = self.get_ipa_from_features()
+        
     def get_ipa_from_features(self):
         """
         Returns a string giving an IPA representation of the Phone.
