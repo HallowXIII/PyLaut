@@ -165,9 +165,17 @@ class Phone(object):
         print(Phone._feature_set_ipa_dict)
     
     def feature_hamming(self,feature_list,ipa_feature_list):
-        return sum(our != ipa for our, ipa in zip(feature_list,ipa_feature_list))
+        distant_symbols = list()
+        for i, (our, ipa) in enumerate(zip(feature_list, ipa_feature_list)):
+            if our != ipa:
+                distant_symbols += [our+self.feature_set[i]]
+                
+        return (distant_symbols,len(distant_symbols))
+        
+        #return sum(our != ipa for our, ipa in zip(feature_list,ipa_feature_list)))
         
     def get_ipa_from_features(self):
+        _IGNORE_DISTANCE_GREATER_THAN = 5
         pass
         #get feature list to compare to Phone._feature_set_ipa_dict
         our_feature_list = list()
@@ -190,23 +198,28 @@ class Phone(object):
         
         #if we have come up empty, look for Hamming-nearby symbols
         if not matching_symbols:
-            #stores the hamming distance between this phone + all ipa chars
+
             hamming_dict = dict()
             
             for segment in Phone._feature_set_ipa_dict:
                 ipa_feature_list = Phone._feature_set_ipa_dict[segment] 
-                hamming_dist = self.feature_hamming(our_feature_list,ipa_feature_list)
-                hamming_dict[segment] = hamming_dist
-            
-            #get a list of (symbol, hamming distance tuples)
-            hamming_list = sorted(hamming_dict.items(),key=lambda x:x[1])
-            
-            hamming_dict_collected = dict()
-            for symbol, distance in hamming_list:
-                if distance in hamming_dict_collected:
-                    hamming_dict_collected[distance] += [symbol]
+                hamming_diff, hamming_dist = self.feature_hamming(our_feature_list,ipa_feature_list)
+                if hamming_dist > _IGNORE_DISTANCE_GREATER_THAN:
+                    pass
                 else:
-                    hamming_dict_collected[distance] = [symbol]
+                    hamming_dict[segment] = (hamming_diff, hamming_dist)
+            
+
+            hamming_list = sorted(hamming_dict.items(),key=lambda x:x[1][1])
+
+            #collect these together into a dictionary, grouping symbols by
+            #hamming distance
+            hamming_dict_collected = dict()
+            for symbol, (diffs,distance) in hamming_list:
+                if distance in hamming_dict_collected:
+                    hamming_dict_collected[distance] += [(symbol,diffs)]
+                else:
+                    hamming_dict_collected[distance] = [(symbol,diffs)]
                     
             pprint(hamming_dict_collected)
         return matching_symbols
