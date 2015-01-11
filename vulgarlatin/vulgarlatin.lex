@@ -3,11 +3,11 @@
 #
 #IPA          orthography gloss
 #-----------------------------
-ab'an.te	  abante	  before1
-'an.te	      ante	      before2
-ad	          ad	      to
-ak'tjo.ne	  actione	  action
-'ak.tʊ	      actu	      act;done;acted
+ab'an.te      abante      before1
+'an.te        ante        before2
+ad            ad          to
+ak'tjo.ne     actione     action
+'ak.tʊ        actu        act;done;acted
 'a.ge.re      agere       do1
 a'la.re       alare       go1
 'al.trʊ       altru       other
