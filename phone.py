@@ -8,32 +8,47 @@ class Phone(object):
     They are a collection [dictionary + canonical order] of phonological features
     with extra structure to make manipulating them easier.
     """
+    
+    
     #the values features can take.
-    #maybe we will change this to "+-0" or something, but i am storing it as a
-    #class attribute for convenience
-
-    _TRUE_FEATURE = True
-    _FALSE_FEATURE = False
-    _NULL_FEATURE = None
+    _TRUE_FEATURE = "+"
+    _FALSE_FEATURE = "-"
+    _NULL_FEATURE = "0"
     _possible_feature_values = [_TRUE_FEATURE, _FALSE_FEATURE, _NULL_FEATURE]
     
     #stores whether the feature set defines an IPA lookup table
     _FEATURE_SET_IPA_LOOKUP = False
     _feature_set_ipa_dict = dict()    
-        
+    
+    #the longest distance between features that get_ipa_from_features will regard
+    _IGNORE_DISTANCE_GREATER_THAN = 5
+            
+            
     def __init__(self):
+
         self.feature_set_name = None
-        #self.feature_set is a canonical order for features, so features can be
-        #set in one go as e.g. "+++--00+-"
-        self.feature_set = list()
+
+        #the features of the Phone
         self.features = dict()
+        #self.feature_set is a canonical order for features
+        self.feature_set = list()
+        
         #representation of the Phone
         self.symbol = "0"
-        
+    
+    
     def __repr__(self):
         """
         Actually there are many choices for the default representation, but for
-        now it produces a string "[+feature] [-lol] [+dongs]"
+        now it uses print_feature_list"
+        """
+        return self.print_feature_list()
+    
+        
+    def print_feature_list(self):
+        """
+        Produce a feature string from the Phone, 
+        e.g. [-syllabic] [+consonantal] [-continuant] [+sonorant] ...
         """
         output = []
         for feature in self.feature_set:
@@ -43,8 +58,10 @@ class Phone(object):
                 output += ["[-{}]".format(feature)]
             else:
                 pass
+                
         return " ".join(output)
-        
+    
+    
     def load_set_feature_set(self,feature_set_file_name):
         """
         Loads a feature set from file, sets the Phone's feature set to it and 
@@ -78,12 +95,13 @@ class Phone(object):
                 feature_set_ipa_val = line.split()
                 Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
 
-    
+
     def clear_features(self):
         """
         Clears the entries of self.features.
         """
         self.features = {x: None for x in self.feature_set}
+
 
     def set_feature(self,feature_name,feature_value):
         """
@@ -104,6 +122,7 @@ class Phone(object):
                 #do it
                 self.features[feature_name] = feature_value
 
+
     def set_features_bool(self,feature_names,hey_boo):
         """
         Used by set_features_true/false/null
@@ -118,24 +137,28 @@ class Phone(object):
         
         for feature_name in feature_names:
             self.set_feature(feature_name,hey_boo)
+
             
     def set_features_true(self,feature_names):
         """
         Sets the feature_name of the Phone to be true/+
         """
         self.set_features_bool(feature_names,Phone._TRUE_FEATURE)
+
     
     def set_features_false(self,feature_names):
         """
         Sets the feature_name of the Phone to be false/-
         """
         self.set_features_bool(feature_names,Phone._FALSE_FEATURE)
+
     
     def set_features_null(self,feature_names):
         """
         Sets the feature_name of the Phone to be null/0
         """
         self.set_features_bool(feature_names,Phone._NULL_FEATURE)
+
 
     def set_features_from_ipa(self,ipa_char):
         """
@@ -148,44 +171,54 @@ class Phone(object):
         #complete + contain a value for all features]
         self.clear_features()
         
-        #XXX: can u not iterate directly over the feature_set?
-        #     cf. the inverse function of this -P 11/01/2015
-        for i in range(len(self.feature_set)):
-            if ipa_char_features[i] == "+":
-                self.set_features_true(self.feature_set[i])
-            elif ipa_char_features[i] == "-":
-                self.set_features_false(self.feature_set[i])
-            else:
-                self.set_features_null(self.feature_set[i])
-
-    def i_farted(self):
-        """
-        for debug purposes, pls dont use and if at all possible, delete
-        """
-        print(Phone._feature_set_ipa_dict)
+#        #XXX: can u not iterate directly over the feature_set?
+#        #     cf. the inverse function of this -P 11/01/2015
+#        #XXX: i rewrote it, pls c b-low -P 11/01/2015
+#
+#        for i in range(len(self.feature_set)):
+#            if ipa_char_features[i] == "+":
+#                self.set_features_true(self.feature_set[i])
+#            elif ipa_char_features[i] == "-":
+#                self.set_features_false(self.feature_set[i])
+#            else:
+#                self.set_features_null(self.feature_set[i])
     
+        for ipa_feat, our_feat in zip(ipa_char_features, self.feature_set):
+            if ipa_feat == Phone._TRUE_FEATURE:
+                self.set_features_true(our_feat)
+            elif ipa_feat == Phone._FALSE_FEATURE:
+                self.set_features_false(our_feat)
+            else:
+                self.set_features_null(our_feat)
+
+                
     def feature_hamming(self,feature_list,ipa_feature_list):
+        """
+        Takes in two lists of features, from the same feature set + in same 
+        canonical order, in the order of 'arbitrary feature list' and 'ipa 
+        feature list' [or some other 'more canonical' feature list in case 
+        of reuse] and returns a tuple:
+         (which features feature_list has different from ipa_feature_list,
+          length of this list == hamming distance between the two)
+        """
         distant_symbols = list()
         for i, (our, ipa) in enumerate(zip(feature_list, ipa_feature_list)):
             if our != ipa:
                 distant_symbols += [our+self.feature_set[i]]
                 
         return (distant_symbols,len(distant_symbols))
-        
-        #return sum(our != ipa for our, ipa in zip(feature_list,ipa_feature_list)))
+
         
     def get_ipa_from_features(self):
-        _IGNORE_DISTANCE_GREATER_THAN = 5
-        pass
         #get feature list to compare to Phone._feature_set_ipa_dict
         our_feature_list = list()
         for feature in self.feature_set:
             if self.features[feature] == Phone._TRUE_FEATURE:
-                addend = "+"
+                addend = Phone._TRUE_FEATURE
             elif self.features[feature] == Phone._FALSE_FEATURE:
-                addend = "-"
+                addend = Phone._FALSE_FEATURE
             else:
-                addend = "0"
+                addend = Phone._NULL_FEATURE
             our_feature_list += [addend]
         print(our_feature_list)
         
@@ -204,12 +237,11 @@ class Phone(object):
             for segment in Phone._feature_set_ipa_dict:
                 ipa_feature_list = Phone._feature_set_ipa_dict[segment] 
                 hamming_diff, hamming_dist = self.feature_hamming(our_feature_list,ipa_feature_list)
-                if hamming_dist > _IGNORE_DISTANCE_GREATER_THAN:
+                if hamming_dist > Phone._IGNORE_DISTANCE_GREATER_THAN:
                     pass
                 else:
                     hamming_dict[segment] = (hamming_diff, hamming_dist)
             
-
             hamming_list = sorted(hamming_dict.items(),key=lambda x:x[1][1])
 
             #collect these together into a dictionary, grouping symbols by
@@ -222,7 +254,10 @@ class Phone(object):
                     hamming_dict_collected[distance] = [(symbol,diffs)]
                     
             pprint(hamming_dict_collected)
+
         return matching_symbols
+
+
                     
 class MicroPhone(Phone):
     """
@@ -233,23 +268,30 @@ class MicroPhone(Phone):
         super().__init__()
         self.load_set_feature_set("micromonophone")
 
+
+
 class MonoPhone(Phone):
     """
-    MicroPhones are Phones which use the MONOPHONE feature-set. For further 
+    MonoPhones are Phones which use the MONOPHONE feature-set. For further 
     information, please refer to Phone.
     """
     def __init__(self):
         super().__init__()
         self.load_set_feature_set("monophone")
-        
-lol = MonoPhone()
 
-lol.set_features_from_ipa("m")
-lol.set_features_false("voice")
+################################################################################
+#DEBUGGING
+################################################################################
 
-#the raw feature dict, don't do this
-print(lol.features)
-#lol.__repr__, do do this
-print(lol)
-#lol.i_farted()
-print(lol.get_ipa_from_features())
+if __name__ == "__main__":
+    lol = MonoPhone()
+
+    lol.set_features_from_ipa("m")
+    lol.set_features_false("voice")
+
+    #the raw feature dict, don't do this
+    print(lol.features)
+    #lol.__repr__, do do this
+    print(lol)
+
+    print(lol.get_ipa_from_features())
