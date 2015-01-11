@@ -208,54 +208,91 @@ class Phone(object):
                 
         return (distant_symbols,len(distant_symbols))
 
-        
-    def get_ipa_from_features(self):
-        #get feature list to compare to Phone._feature_set_ipa_dict
-        our_feature_list = list()
+    def get_feature_list(self):
+        """
+        Returns a list of the values of features from self.features, using the 
+        canonical order from self.feature_set.
+        """
+        feature_list = list()
         for feature in self.feature_set:
-            if self.features[feature] == Phone._TRUE_FEATURE:
-                addend = Phone._TRUE_FEATURE
-            elif self.features[feature] == Phone._FALSE_FEATURE:
-                addend = Phone._FALSE_FEATURE
-            else:
-                addend = Phone._NULL_FEATURE
-            our_feature_list += [addend]
-        print(our_feature_list)
+            feature_list += [self.features[feature]]
+        return feature_list
         
-        #contains the matching symbols + hamming distance
+    def is_good_ipa(self):
+        """
+        Returns an IPA symbol if the Phone fits an IPA symbol in the feature-
+        set used, requiring no diacritics, and None otherwise.
+        """
         matching_symbols = list()
-        #look through Phone._feature_set_ipa_dict to see if it is in as it is
-        for segment in Phone._feature_set_ipa_dict:
-            if Phone._feature_set_ipa_dict[segment] == our_feature_list:
-                matching_symbols += [(segment,0)]
+        our_feature_list = self.get_feature_list()
+        for ipa_char in Phone._feature_set_ipa_dict:
+            if Phone._feature_set_ipa_dict[ipa_char] == our_feature_list:
+                matching_symbols += [ipa_char]
         
-        #if we have come up empty, look for Hamming-nearby symbols
-        if not matching_symbols:
-
-            hamming_dict = dict()
+        if len(matching_symbols) > 1:
+            raise Exception("Multiple symbols match Phone: check feature set "
+                            "for non-contrasting symbols.")
+        elif len(matching_symbols) < 1:
+            return None
+        else:
+            return matching_symbols[0]
             
-            for segment in Phone._feature_set_ipa_dict:
-                ipa_feature_list = Phone._feature_set_ipa_dict[segment] 
-                hamming_diff, hamming_dist = self.feature_hamming(our_feature_list,ipa_feature_list)
-                if hamming_dist > Phone._IGNORE_DISTANCE_GREATER_THAN:
-                    pass
-                else:
-                    hamming_dict[segment] = (hamming_diff, hamming_dist)
+    
+    def get_ipa_from_features(self):
+        """
+        Returns a string giving an IPA representation of the Phone.
+        """
+        #check to see if the phone has a good IPA representation first
+        symbol = self.is_good_ipa()
+        #if it does, return it
+        if symbol:
+            return symbol
+        #otherwise proceed: we must identify a similar base IPA glyph and then
+        #add diacritics
+        else:
+            pass
             
-            hamming_list = sorted(hamming_dict.items(),key=lambda x:x[1][1])
+        #get feature list to compare to Phone._feature_set_ipa_dict
+        our_feature_list = self.get_feature_list()
+        #stores (features differing, number of different features = hamming dist)
+        #indexed by ipa char
+        hamming_dict = dict()
 
-            #collect these together into a dictionary, grouping symbols by
-            #hamming distance
-            hamming_dict_collected = dict()
-            for symbol, (diffs,distance) in hamming_list:
-                if distance in hamming_dict_collected:
-                    hamming_dict_collected[distance] += [(symbol,diffs)]
-                else:
-                    hamming_dict_collected[distance] = [(symbol,diffs)]
-                    
-            pprint(hamming_dict_collected)
+        for ipa_char in Phone._feature_set_ipa_dict:
+            ipa_feature_list = Phone._feature_set_ipa_dict[ipa_char] 
+            diffs, hamming_dist = self.feature_hamming(our_feature_list,ipa_feature_list)
+            #ignore ipa symbols infeasibly far -- they are unlikely to make good
+            #representations
+            if hamming_dist > Phone._IGNORE_DISTANCE_GREATER_THAN:
+                pass
+            else:
+                hamming_dict[ipa_char] = (diffs, hamming_dist)
 
-        return matching_symbols
+        #compile a list from hamming_dict, sorting by hamming_dist
+        hamming_list = sorted(hamming_dict.items(),key=lambda x:x[1][1])
+
+        #collect items in hamming_list together into a dictionary
+        #index is hamming distance between phone and base ipa chars
+        #values are lists of tuples (ipa char, diffs)
+        hamming_dict_collected = dict()
+        for symbol, (diffs,distance) in hamming_list:
+            if distance in hamming_dict_collected:
+                hamming_dict_collected[distance] += [(symbol,diffs)]
+            else:
+                hamming_dict_collected[distance] = [(symbol,diffs)]
+
+        pprint(hamming_dict_collected)
+        
+        #TODO: go through hamming_dict_collected, deleting diffs which do not
+        #have diacritics allowing the change to happen
+        
+        #TODO: identify the lowest-indexed solutions thus left
+        #      if it is unique, use that, otherwise I D K
+        
+        #TODO: pick out and append the diacritics to the nearest base
+        
+        #TODO: return it
+        return "0"
 
 
                     
@@ -288,10 +325,6 @@ if __name__ == "__main__":
 
     lol.set_features_from_ipa("m")
     lol.set_features_false("voice")
+    print(lol.is_good_ipa())
+    print("Output: ", lol.get_ipa_from_features())
 
-    #the raw feature dict, don't do this
-    print(lol.features)
-    #lol.__repr__, do do this
-    print(lol)
-
-    print(lol.get_ipa_from_features())
