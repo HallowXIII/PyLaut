@@ -1,3 +1,5 @@
+from pprint import pprint
+
 class Phone(object):
     """
     Phones are the atomic unit of PyLaut. They are somewhere between acoustic
@@ -6,7 +8,6 @@ class Phone(object):
     They are a collection [dictionary + canonical order] of phonological features
     with extra structure to make manipulating them easier.
     """
-    
     #the values features can take.
     #maybe we will change this to "+-0" or something, but i am storing it as a
     #class attribute for convenience
@@ -147,6 +148,8 @@ class Phone(object):
         #complete + contain a value for all features]
         self.clear_features()
         
+        #XXX: can u not iterate directly over the feature_set?
+        #     cf. the inverse function of this -P 11/01/2015
         for i in range(len(self.feature_set)):
             if ipa_char_features[i] == "+":
                 self.set_features_true(self.feature_set[i])
@@ -154,7 +157,60 @@ class Phone(object):
                 self.set_features_false(self.feature_set[i])
             else:
                 self.set_features_null(self.feature_set[i])
-                   
+
+    def i_farted(self):
+        """
+        for debug purposes, pls dont use and if at all possible, delete
+        """
+        print(Phone._feature_set_ipa_dict)
+    
+    def feature_hamming(self,feature_list,ipa_feature_list):
+        return sum(our != ipa for our, ipa in zip(feature_list,ipa_feature_list))
+        
+    def get_ipa_from_features(self):
+        pass
+        #get feature list to compare to Phone._feature_set_ipa_dict
+        our_feature_list = list()
+        for feature in self.feature_set:
+            if self.features[feature] == Phone._TRUE_FEATURE:
+                addend = "+"
+            elif self.features[feature] == Phone._FALSE_FEATURE:
+                addend = "-"
+            else:
+                addend = "0"
+            our_feature_list += [addend]
+        print(our_feature_list)
+        
+        #contains the matching symbols + hamming distance
+        matching_symbols = list()
+        #look through Phone._feature_set_ipa_dict to see if it is in as it is
+        for segment in Phone._feature_set_ipa_dict:
+            if Phone._feature_set_ipa_dict[segment] == our_feature_list:
+                matching_symbols += [(segment,0)]
+        
+        #if we have come up empty, look for Hamming-nearby symbols
+        if not matching_symbols:
+            #stores the hamming distance between this phone + all ipa chars
+            hamming_dict = dict()
+            
+            for segment in Phone._feature_set_ipa_dict:
+                ipa_feature_list = Phone._feature_set_ipa_dict[segment] 
+                hamming_dist = self.feature_hamming(our_feature_list,ipa_feature_list)
+                hamming_dict[segment] = hamming_dist
+            
+            #get a list of (symbol, hamming distance tuples)
+            hamming_list = sorted(hamming_dict.items(),key=lambda x:x[1])
+            
+            hamming_dict_collected = dict()
+            for symbol, distance in hamming_list:
+                if distance in hamming_dict_collected:
+                    hamming_dict_collected[distance] += [symbol]
+                else:
+                    hamming_dict_collected[distance] = [symbol]
+                    
+            pprint(hamming_dict_collected)
+        return matching_symbols
+                    
 class MicroPhone(Phone):
     """
     MicroPhones are Phones which use the MICROMONOPHONE feature-set. For further 
@@ -164,13 +220,23 @@ class MicroPhone(Phone):
         super().__init__()
         self.load_set_feature_set("micromonophone")
 
-lol = MicroPhone()
+class MonoPhone(Phone):
+    """
+    MicroPhones are Phones which use the MONOPHONE feature-set. For further 
+    information, please refer to Phone.
+    """
+    def __init__(self):
+        super().__init__()
+        self.load_set_feature_set("monophone")
+        
+lol = MonoPhone()
 
-#lol.set_features_true(["consonantal","voice"])
-lol.set_features_true("labial")
-lol.set_features_from_ipa("t")
+lol.set_features_from_ipa("m")
+lol.set_features_false("voice")
 
 #the raw feature dict, don't do this
 print(lol.features)
 #lol.__repr__, do do this
 print(lol)
+#lol.i_farted()
+print(lol.get_ipa_from_features())
