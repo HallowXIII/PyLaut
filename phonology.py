@@ -79,16 +79,34 @@ class Phonology(object):
         self.vowel_subsystems = dict()
         
         
-    def define_vowel_subsystem(self,feature):
+    def define_vowel_subsystem(self,feature,autoadd=False):
         """
         Defines a pair of vowel subsystems based on a feature.
         Usually 'length' or 'stress' but also allowing arbitrary 
         features, e.g. SE Asian '+-high' subsystem:
         c.f. http://www.incatena.org/viewtopic.php?p=1047560#p1047560
+        
+        'feature' can be an arbitrary string, but if it matches an actual 
+        phonological feature, then vowels can be added to it automatically.
+        
+        you would want to do this if e.g. all your long vowels are [+long]. 
+        you would not want to do it if they are english-type 'long vowels'
+        
         """
         self.vowel_subsystems["+" + feature] = set()
         self.vowel_subsystems["-" + feature] = set()     
         
+        if autoadd:
+            #go through all vowels and check for 'feature', assigning to
+            #appropriate subsystem as it goes
+            our_vowels = self.get_vowels()
+            for vowel in our_vowels:
+                if vowel.feature_is_true(feature):
+                    self.assign_vowel_to_subsystem(vowel,feature,"+")
+                elif vowel.feature_is_false(feature):
+                    self.assign_vowel_to_subsystem(vowel,feature,"-")
+                else:
+                    pass
         
     def assign_vowel_to_subsystem(self,v,subsystem,value):
         """
