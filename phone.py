@@ -179,12 +179,10 @@ class Phone(object):
 
     def set_features_from_ipa(self,ipa_str):
         """
-        Takes Unicode IPA symbol and automagically assigns appropriate featural 
+        Takes Unicode IPA symbol (optionally with diacritics) and automagically assigns appropriate featural 
         values to Phone
         """
         ipa_char_features = Phone._feature_set_ipa_dict[ipa_str[0]]
-        
-
         
         #clear the features dict to prepare for the IPA data [which should be
         #complete + contain a value for all features]
