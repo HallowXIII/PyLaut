@@ -32,12 +32,24 @@ from phone import MonoPhone
 #?????
 
 class Phonology(object):
-    def __init__(self):
-        self.phonemes = dict()
-
+    """
+    Refer to comments for inchoate comments.
+    """
+    def get_vowels(self):
+        return {ph for ph in self.phonemes if ph.is_vowel()}
+        
+    def get_consonants(self):
+        return {ph for ph in self.phonemes if ph.is_consonant()}
+        
+    def __init__(self,phonemes=[]):
+        self.phonemes = {x:None for x in phonemes}
+        
+        
+        
 if __name__ == '__main__':
-    v = MonoPhone("a")
-    w = MonoPhone("b")
-    #vs = [MonoPhone(vowel) for vowel in ["a","e","i","o","u"]]
-    print(v)
-
+    vs = [MonoPhone(vowel) for vowel in ["a","e","i","o","u","p","t","k"]]
+    ph = Phonology(vs)
+    for v in ph.get_vowels():
+        print(v)
+    for c in ph.get_consonants():
+        print(c)
