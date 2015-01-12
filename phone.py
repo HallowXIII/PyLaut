@@ -87,22 +87,31 @@ class Phone(object):
         #does the feature set specify ipa lookup?
         if Phone._FEATURE_SET_IPA_LOOKUP and not Phone._feature_set_ipa_dict:
             try:
-                feature_set_ipa_vals_raw = open(feature_set_ipa_filename,"r").read().splitlines()
+                feature_set_ipa_vals_file = open(feature_set_ipa_filename,"r")
+                feature_set_ipa_vals_raw = feature_set_ipa_vals_file.read().splitlines()
+                feature_set_ipa_vals_file.close()
             except IOError:
                 raise Exception("Invalid IPA lookup file!")
         for line in feature_set_ipa_vals_raw[1:]:
             if line:
                 feature_set_ipa_val = line.split()
-                Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
+                feats = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
+                Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = feats
         if not Phone._feature_set_ipa_diacritics:
             try:
-                feature_set_ipa_dcs_raw = open(feature_set_diacritics_filename,"r").read().splitlines()
+                feature_set_ipa_dcs_file = open(feature_set_diacritics_filename,"r")
+                feature_set_ipa_dcs_raw = feature_set_ipa_dcs_file.read().splitlines()
+                feature_set_ipa_dcs_file.close()
             except IOError:
                 raise Exception("Invalid IPA Diacritic lookup file!")
         for line in feature_set_ipa_dcs_raw[1:]:
             if line:
                 feature_set_ipa_dc = line.split()
-                Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = tuple([item for item in feature_set_ipa_dc[1:]])
+                #this is a more natural notation for a feature
+                #also the notation that get_ipa_from_features uses
+                d_feat = "".join(feature_set_ipa_dc[:0:-1])
+                Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = d_feat
+                #Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = tuple([item for item in feature_set_ipa_dc[1:]])
 
 
     def clear_features(self):
@@ -179,18 +188,6 @@ class Phone(object):
         #clear the features dict to prepare for the IPA data [which should be
         #complete + contain a value for all features]
         self.clear_features()
-        
-#        #XXX: can u not iterate directly over the feature_set?
-#        #     cf. the inverse function of this -P 11/01/2015
-#        #XXX: i rewrote it, pls c b-low -P 11/01/2015
-#
-#        for i in range(len(self.feature_set)):
-#            if ipa_char_features[i] == "+":
-#                self.set_features_true(self.feature_set[i])
-#            elif ipa_char_features[i] == "-":
-#                self.set_features_false(self.feature_set[i])
-#            else:
-#                self.set_features_null(self.feature_set[i])
     
         for ipa_feat, our_feat in zip(ipa_char_features, self.feature_set):
             if ipa_feat == Phone._TRUE_FEATURE:
@@ -290,26 +287,46 @@ class Phone(object):
         #collect items in hamming_list together into a dictionary
         #index is hamming distance between phone and base ipa chars
         #values are lists of tuples (ipa char, diffs)
+        #these are our first-round candidates
         hamming_dict_collected = dict()
         for symbol, (diffs,distance) in hamming_list:
             if distance in hamming_dict_collected:
                 hamming_dict_collected[distance] += [(symbol,diffs)]
             else:
                 hamming_dict_collected[distance] = [(symbol,diffs)]
+        
+        #look to see which of these can have diacritics added and work out which
+        
+        #reverse Phone._feature_set_ipa_diacritics so we can look up diacritics
+        #from the feature        
+        reverse_diacritics = {a: b for b,a in Phone._feature_set_ipa_diacritics.items()}
 
-        pprint(hamming_dict_collected)
+        #this will hold our final candidates
+        valid = list()
         
-        #TODO: go through hamming_dict_collected, deleting diffs which do not
-        #have diacritics allowing the change to happen
-        
+        #go through our first-round candidates
+        for distance in hamming_dict_collected:
+            for candidate_base, diffs in hamming_dict_collected[distance]:
+                #every feature in the first-round candidates is checked to see if
+                #there is a diacritic, if there is we note what the diacritic is,
+                #otherwise we leave an ominous blank
+                purged_diffs = [reverse_diacritics[diff] if diff in reverse_diacritics else None for diff in diffs]
+                if None in purged_diffs:
+                    pass
+                else:
+                    #we store the second-round candidate base glyph with diacritics 
+                    valid += [(candidate_base,purged_diffs)]
 
         #TODO: identify the lowest-indexed solutions thus left
         #      if it is unique, use that, otherwise I D K
+        #for now we pick the first one, if there are any...
+        if len(valid) < 1:  
+            raise Exception("No IPA representation found for Phone!" )
+        else:
+            final_choice = valid[0]
         
-        #TODO: pick out and append the diacritics to the nearest base
-        
-        #TODO: return it
-        return "0"
+        final_glyph = final_choice[0] + "".join(final_choice[1])
+        return final_glyph
 
 
                     
@@ -339,10 +356,18 @@ class MonoPhone(Phone):
 
 if __name__ == "__main__":
     lol = MonoPhone()
-
     lol.set_features_from_ipa("m")
-    lol.set_features_false("voice")
-    print(lol.is_good_ipa())
-    print("Output: ", lol.get_ipa_from_features())
-    pprint(Phone._feature_set_ipa_diacritics)
+    lol.set_features_false("voice") 
+    lol.set_symbol_from_features()
+    print(lol.symbol)
+    #how nice, it works and prints m̥ :)))
+    #WAIT WHAT IS THIS
+    lol.set_features_from_ipa("g")
+    lol.set_features_false("voice")  
+    lol.set_symbol_from_features()
+    print(lol.symbol)
+    #g̥  WHAT IS THIS NONSENSE
+    #A: you fucked up monophone_ipa -- the rightmost columns don't make sense
+    #so g is no longer k [+voice]
+    #please fix them, or [k] will forever be known as [g̥ ]
 
