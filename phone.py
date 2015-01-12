@@ -91,25 +91,25 @@ class Phone(object):
                 feature_set_ipa_vals_file.close()
             except IOError:
                 raise Exception("Invalid IPA lookup file!")
-        for line in feature_set_ipa_vals_raw[1:]:
-            if line:
-                feature_set_ipa_val = line.split()
-                feats = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
-                Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = feats
-        if not Phone._feature_set_ipa_diacritics:
-            try:
-                feature_set_ipa_dcs_file = open(feature_set_diacritics_filename,"r")
-                feature_set_ipa_dcs_raw = feature_set_ipa_dcs_file.read().splitlines()
-                feature_set_ipa_dcs_file.close()
-            except IOError:
-                raise Exception("Invalid IPA Diacritic lookup file!")
-        for line in feature_set_ipa_dcs_raw[1:]:
-            if line:
-                feature_set_ipa_dc = line.split()
+            for line in feature_set_ipa_vals_raw[1:]:
+                if line:
+                    feature_set_ipa_val = line.split()
+                    feats = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
+                    Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = feats
+            if not Phone._feature_set_ipa_diacritics:
+                try:
+                    feature_set_ipa_dcs_file = open(feature_set_diacritics_filename,"r")
+                    feature_set_ipa_dcs_raw = feature_set_ipa_dcs_file.read().splitlines()
+                    feature_set_ipa_dcs_file.close()
+                except IOError:
+                    raise Exception("Invalid IPA Diacritic lookup file!")
+            for line in feature_set_ipa_dcs_raw[1:]:
+                if line:
+                    feature_set_ipa_dc = line.split()
                 #this is a more natural notation for a feature
                 #also the notation that get_ipa_from_features uses
-                d_feat = "".join(feature_set_ipa_dc[:0:-1])
-                Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = d_feat
+                    d_feat = "".join(feature_set_ipa_dc[:0:-1])
+                    Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = d_feat
                 #Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = tuple([item for item in feature_set_ipa_dc[1:]])
 
 
