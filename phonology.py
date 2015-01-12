@@ -172,9 +172,9 @@ if __name__ == '__main__':
 
     print(ph.phonemes)
     
-    ph.define_vowel_subsystem("long")
-    for v, l in zip(vs,ls):
-        pv = ph.get_phoneme(v)
-        ph.assign_vowel_to_subsystem(pv,"long",l)
+    ph.define_vowel_subsystem("long",autoadd=True)
+#    for v, l in zip(vs,ls):
+#        pv = ph.get_phoneme(v)
+#        ph.assign_vowel_to_subsystem(pv,"long",l)
 
     print(ph.vowel_subsystems)
