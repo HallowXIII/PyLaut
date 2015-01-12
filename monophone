@@ -1,5 +1,6 @@
 monophone
 monophone_ipa
+monophone_ipa_diacritics
 
 [syllabic]
 [consonantal]
@@ -24,4 +25,5 @@ monophone_ipa
 [round]
 [tense]
 [breathy]
-
+[aspirated]
+[long]

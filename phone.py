@@ -17,7 +17,8 @@ class Phone(object):
     #stores whether the feature set defines an IPA lookup table
     _FEATURE_SET_IPA_LOOKUP = False
     _feature_set_ipa_dict = dict()    
-    
+    _feature_set_ipa_diacritics = dict()    
+    _feature_set_diacritic_features = list()
     #the longest distance between features that get_ipa_from_features will regard
     _IGNORE_DISTANCE_GREATER_THAN = 5
             
@@ -71,9 +72,10 @@ class Phone(object):
         feature_set_raw = open(feature_set_file_name,"r").read().splitlines()
         feature_set_name = feature_set_raw[0]
         if feature_set_raw[1]:
-            if feature_set_raw[1] != "0":
+            if feature_set_raw[1] and feature_set_raw[2] != "0":
                 Phone._FEATURE_SET_IPA_LOOKUP = True
                 feature_set_ipa_filename = feature_set_raw[1]
+                feature_set_diacritics_filename = feature_set_raw[2]
         feature_set = [line for line in feature_set_raw if line and 
                        line[0] == "[" and line[-1] == "]" ]
         feature_set = [line[1:-1] for line in feature_set]
@@ -92,6 +94,15 @@ class Phone(object):
             if line:
                 feature_set_ipa_val = line.split()
                 Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
+        if not Phone._feature_set_ipa_diacritics:
+            try:
+                feature_set_ipa_dcs_raw = open(feature_set_diacritics_filename,"r").read().splitlines()
+            except IOError:
+                raise Exception("Invalid IPA Diacritic lookup file!")
+        for line in feature_set_ipa_dcs_raw[1:]:
+            if line:
+                feature_set_ipa_dc = line.split()
+                Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = tuple([item for item in feature_set_ipa_dc[1:]])
 
 
     def clear_features(self):
@@ -291,6 +302,7 @@ class Phone(object):
         #TODO: go through hamming_dict_collected, deleting diffs which do not
         #have diacritics allowing the change to happen
         
+
         #TODO: identify the lowest-indexed solutions thus left
         #      if it is unique, use that, otherwise I D K
         
@@ -332,4 +344,5 @@ if __name__ == "__main__":
     lol.set_features_false("voice")
     print(lol.is_good_ipa())
     print("Output: ", lol.get_ipa_from_features())
+    pprint(Phone._feature_set_ipa_diacritics)
 
