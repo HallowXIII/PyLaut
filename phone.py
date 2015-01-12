@@ -14,6 +14,7 @@ class Phone(object):
     _NULL_FEATURE = "0"
     _possible_feature_values = [_TRUE_FEATURE, _FALSE_FEATURE, _NULL_FEATURE]
     
+    _FEATURE_SET_NAME = None
     #stores whether the feature set defines an IPA lookup table
     _FEATURE_SET_IPA_LOOKUP = False
     _feature_set_ipa_dict = dict()    
@@ -36,11 +37,12 @@ class Phone(object):
     
     
     def __repr__(self):
-        """
-        Actually there are many choices for the default representation, but for
-        now it uses print_feature_list"
-        """
-        return self.print_feature_list()
+        return self.symbol
+#        """
+#        Actually there are many choices for the default representation, but for
+#        now it uses print_feature_list"
+#        """
+#        return self.print_feature_list()
     
         
     def print_feature_list(self):
@@ -57,7 +59,7 @@ class Phone(object):
             else:
                 pass
                 
-        return " ".join(output)
+        return output
     
     
     def load_set_feature_set(self,feature_set_file_name):
@@ -234,7 +236,30 @@ class Phone(object):
             feature_list += [self.features[feature]]
         return feature_list
 
-        
+    
+    def is_good_feature(self,feature):
+        if feature in self.feature_set:
+            return True
+        else:
+            return False
+
+                
+    def feature_is(self,feature,hey_boo):
+        """
+        Returns True if the feature 'feature' in the phone is hey_boo, 
+        otherwise returns False
+        """
+        if not self.is_good_feature(feature):
+            raise Exception("{} not a valid feature.".format(feature))
+        else:
+            if hey_boo not in Phone._possible_feature_values:
+                raise Exception("{} not a valid feature value.".format(hey_boo))
+            else:
+                if (self.features[feature]) == hey_boo:
+                    return True
+                else:
+                    return False
+            
     def is_good_ipa(self):
         """
         Returns an IPA symbol if the Phone fits an IPA symbol in the feature-
@@ -253,12 +278,14 @@ class Phone(object):
             return None
         else:
             return matching_symbols[0]
+
             
     def set_symbol_from_features(self):
         """
         Sets self.symbol using get_ipa_from_features
         """
         self.symbol = self.get_ipa_from_features()
+
         
     def get_ipa_from_features(self):
         """
@@ -344,9 +371,27 @@ class MonoPhone(Phone):
     MonoPhones are Phones which use the MONOPHONE feature-set. For further 
     information, please refer to Phone.
     """
+    
+    _FEATURE_SET_NAME = "monophone"
+        
+    _CONSONANTAL_FEATURE = "consonantal"
+    
+    def is_vowel(self):
+        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,MonoPhone._FALSE_FEATURE):
+            return True
+        else:
+            return False
+
+
+    def is_consonant(self):
+        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
+            
     def __init__(self,ipa_string=None):
         super().__init__()
-        self.load_set_feature_set("monophone")
+        self.load_set_feature_set(MonoPhone._FEATURE_SET_NAME)
         if ipa_string:
             self.set_features_from_ipa(ipa_string)
             self.set_symbol_from_features()
