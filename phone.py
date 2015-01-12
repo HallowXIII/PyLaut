@@ -258,19 +258,19 @@ class Phone(object):
                     return False
     
     def feature_is_true(self,feature):
-        if self.feature_is(self,feature,Phone._TRUE_FEATURE):
+        if self.feature_is(feature,Phone._TRUE_FEATURE):
             return True
         else:
             return False
 
     def feature_is_false(self,feature):
-        if self.feature_is(self,feature,Phone._FALSE_FEATURE):
+        if self.feature_is(feature,Phone._FALSE_FEATURE):
             return True
         else:
             return False
 
     def feature_is_null(self,feature):
-        if self.feature_is(self,feature,Phone._NULL_FEATURE):
+        if self.feature_is(feature,Phone._NULL_FEATURE):
             return True
         else:
             return False
