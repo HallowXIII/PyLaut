@@ -340,17 +340,6 @@ class Phone(object):
         return final_glyph
 
 
-                    
-class MicroPhone(Phone):
-    """
-    MicroPhones are Phones which use the MICROMONOPHONE feature-set. For further 
-    information, please refer to Phone.
-    """
-    def __init__(self):
-        super().__init__()
-        self.load_set_feature_set("micromonophone")
-
-
 
 class MonoPhone(Phone):
     """
