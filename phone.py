@@ -344,9 +344,12 @@ class MonoPhone(Phone):
     MonoPhones are Phones which use the MONOPHONE feature-set. For further 
     information, please refer to Phone.
     """
-    def __init__(self):
+    def __init__(self,ipa_string=None):
         super().__init__()
         self.load_set_feature_set("monophone")
+        if ipa_string:
+            self.set_features_from_ipa(ipa_string)
+            self.set_symbol_from_features()
 
 ################################################################################
 #DEBUGGING
