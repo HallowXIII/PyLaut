@@ -18,7 +18,6 @@ class Phone(object):
     _FEATURE_SET_IPA_LOOKUP = False
     _feature_set_ipa_dict = dict()    
     _feature_set_ipa_diacritics = dict()    
-    _feature_set_diacritic_features = list()
     #the longest distance between features that get_ipa_from_features will regard
     _IGNORE_DISTANCE_GREATER_THAN = 5
             
@@ -178,12 +177,14 @@ class Phone(object):
         self.set_features_bool(feature_names,Phone._NULL_FEATURE)
 
 
-    def set_features_from_ipa(self,ipa_char):
+    def set_features_from_ipa(self,ipa_str):
         """
         Takes Unicode IPA symbol and automagically assigns appropriate featural 
         values to Phone
         """
-        ipa_char_features = Phone._feature_set_ipa_dict[ipa_char]
+        ipa_char_features = Phone._feature_set_ipa_dict[ipa_str[0]]
+        
+
         
         #clear the features dict to prepare for the IPA data [which should be
         #complete + contain a value for all features]
@@ -196,8 +197,18 @@ class Phone(object):
                 self.set_features_false(our_feat)
             else:
                 self.set_features_null(our_feat)
-
+        if len(ipa_str) > 1:
+            for char in ipa_str[1:]:
+                dc_feat = Phone._feature_set_ipa_diacritics[char][1:]
+                dc_val = Phone._feature_set_ipa_diacritics[char][0]
+                if dc_val == Phone._TRUE_FEATURE:
+                    self.set_features_true(dc_feat)
+                elif dc_val == Phone._FALSE_FEATURE:
+                    self.set_features_false(dc_feat)
+                else:
+                    self.seat_features_null(dc_feat)
                 
+
     def feature_hamming(self,feature_list,ipa_feature_list):
         """
         Takes in two lists of features, from the same feature set + in same 
@@ -361,13 +372,16 @@ if __name__ == "__main__":
     lol.set_symbol_from_features()
     print(lol.symbol)
     #how nice, it works and prints m̥ :)))
-    #WAIT WHAT IS THIS
     lol.set_features_from_ipa("g")
     lol.set_features_false("voice")  
     lol.set_symbol_from_features()
     print(lol.symbol)
-    #g̥  WHAT IS THIS NONSENSE
-    #A: you fucked up monophone_ipa -- the rightmost columns don't make sense
-    #so g is no longer k [+voice]
-    #please fix them, or [k] will forever be known as [g̥ ]
-
+    lol.set_features_from_ipa("q")
+    lol.set_features_true("aspirated")
+    lol.set_symbol_from_features()
+    print(lol.symbol)
+    #everything works! propose unification of +aspirate with +breathy
+    #will get on a diacritic rewriter later
+    lol.set_features_from_ipa("tˤʰ")
+    pprint(lol.features) 
+    #yep, also this
