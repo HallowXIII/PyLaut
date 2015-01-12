@@ -1,37 +1,43 @@
-def dummy():
-    """
-what should a phonology store?
+from phone import MonoPhone
 
-PHONEMES, obviously -- a set of Phones as The Phonemic Vowels, from which allophonic
-+ suprasegmental variants are derived
+#what should a phonology store?
 
-but also systems
- -- allophony
- -- suprasegmentals
- -- system analysis -- systemzwang
+#PHONEMES, obviously -- a set of Phones as The Phonemic Vowels, from which allophonic
+#+ suprasegmental variants are derived
 
-Vowels
-------
+#but also systems
+# -- allophony
+# -- suprasegmentals
+# -- system analysis -- systemzwang
 
-dhok has compiled a big list + classified vowel systems at http://www.incatena.org/viewtopic.php?f=7&t=41583
-classifying a collection of vowels like this would be a start
+#Vowels
+#------
 
-something which goes 'lol ur vowels are the same as in <list of languages here>'
-this should be pretty easy, i think, since it is just looking at sets of vowels
+#dhok has compiled a big list + classified vowel systems at http://www.incatena.org/viewtopic.php?f=7&t=41583
+#classifying a collection of vowels like this would be a start
 
-short + long vowel systems
-and vowel subsystems generally c.f. nort: http://www.incatena.org/viewtopic.php?p=1047560#p1047560
+#something which goes 'lol ur vowels are the same as in <list of languages here>'
+#this should be pretty easy, i think, since it is just looking at sets of vowels
 
-actually, get nort to consult, he is a vowelf*cker
+#short + long vowel systems
+#and vowel subsystems generally c.f. nort: http://www.incatena.org/viewtopic.php?p=1047560#p1047560
 
-dipthongs????
+#actually, get nort to consult, he is a vowelf*cker
 
-Consonants
------------
+#dipthongs????
 
-?????
+#Consonants
+#-----------
 
-    """
-    while 1:
-        print("ALLAHU AKBAR")
+#?????
+
+class Phonology(object):
+    def __init__(self):
+        self.phonemes = dict()
+
+if __name__ == '__main__':
+    v = MonoPhone("a")
+    w = MonoPhone("b")
+    #vs = [MonoPhone(vowel) for vowel in ["a","e","i","o","u"]]
+    print(v)
 
