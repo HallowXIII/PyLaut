@@ -37,13 +37,10 @@ class Phone(object):
     
     
     def __repr__(self):
-        return self.symbol
-#        """
-#        Actually there are many choices for the default representation, but for
-#        now it uses print_feature_list"
-#        """
-#        return self.print_feature_list()
-    
+        """
+        The representation of a phone is the IPA symbol in square brackets
+        """
+        return "[" + self.symbol + "]"    
         
     def print_feature_list(self):
         """
@@ -364,7 +361,11 @@ class Phone(object):
         final_glyph = final_choice[0] + "".join(final_choice[1])
         return final_glyph
 
-
+    def is_symbol(self,ipa_string):
+        if self.symbol == ipa_string:
+            return True
+        else:
+            return False
 
 class MonoPhone(Phone):
     """
