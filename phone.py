@@ -256,7 +256,25 @@ class Phone(object):
                     return True
                 else:
                     return False
-            
+    
+    def feature_is_true(self,feature):
+        if self.feature_is(self,feature,Phone._TRUE_FEATURE):
+            return True
+        else:
+            return False
+
+    def feature_is_false(self,feature):
+        if self.feature_is(self,feature,Phone._FALSE_FEATURE):
+            return True
+        else:
+            return False
+
+    def feature_is_null(self,feature):
+        if self.feature_is(self,feature,Phone._NULL_FEATURE):
+            return True
+        else:
+            return False
+                      
     def is_good_ipa(self):
         """
         Returns an IPA symbol if the Phone fits an IPA symbol in the feature-
