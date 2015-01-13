@@ -24,7 +24,7 @@ aut           aut         or
 'brak.kjʊ     bracciu     arm
 'bɔ.nʊ        bonu        good
 ka'bal.lʊ     caballu     horse
-ka'dere       cadere      fall
+ka'de.re       cadere      fall
 'ka.ne        cane        dog
 kan'ta.re     cantare     sing
 kan'tjo.ne    cantione    song
