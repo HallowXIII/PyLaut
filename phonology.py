@@ -78,7 +78,9 @@ class Phonology(object):
         self.phonemes = {Phoneme(x) for x in phonemes}
         self.vowel_subsystems = dict()
         
-        
+    def __repr__(self):
+        return str(self.phonemes)
+           
     def define_vowel_subsystem(self,feature,autoadd=False):
         """
         Defines a pair of vowel subsystems based on a feature.
@@ -97,6 +99,8 @@ class Phonology(object):
         self.vowel_subsystems["-" + feature] = set()     
         
         if autoadd:
+            #TODO check to see if feature actually is a feature
+            
             #go through all vowels and check for 'feature', assigning to
             #appropriate subsystem as it goes
             our_vowels = self.get_vowels()
@@ -162,8 +166,18 @@ class Phonology(object):
         else:
             raise Exception("Phoneme /{}/ not found in Phonology.".format(ipa_str))
         
+    def get_phoneme_dictionary(self):
+        """
+        Return a dictionary {symbol:phoneme}
+        """
+        phoneme_dict = dict()
+        for phoneme in self.phonemes:
+            phoneme_dict[phoneme.symbol] = phoneme
+        return phoneme_dict
+            
         
-        
+################################################################################
+
 if __name__ == '__main__':
     vs = ["aː","iː","uː","a","i","u","ə"]
     ls = ["+", "+", "+", "-","-","-","-"]
