@@ -80,7 +80,61 @@ class Phonology(object):
         
     def __repr__(self):
         return str(self.phonemes)
-           
+
+    def get_vowels(self):
+        """
+        Gets the subset of self.phonemes which are vowels
+        """
+        return {ph for ph in self.phonemes if ph.is_vowel()}
+        
+        
+    def get_consonants(self):
+        """
+        Gets the subset of self.phonemes which are consonants
+        """
+        return {ph for ph in self.phonemes if ph.is_consonant()}
+    
+    
+    def get_phoneme(self,ipa_str):
+        """
+        Return the Phoneme represented by ipa_str
+        """
+        our_phoneme = None
+        for phoneme in self.phonemes:
+            if phoneme.is_symbol(ipa_str):
+                our_phoneme = phoneme
+        if our_phoneme:
+            return our_phoneme
+        else:
+            raise Exception("Phoneme /{}/ not found in Phonology.".format(ipa_str))
+    
+    def get_phonemes_with_feature(self,feature,value):
+        """
+        Returns subset of self.phonemes where the 'feature' is "+" or "-"
+        """
+        return set([ph for ph in self.phonemes if ph.feature_is(feature,value)])
+
+    def get_phonemes_with_features(self,feature_dict):
+        """
+        Takes a dictionary of {feature:value...} pairs and returns the subset of 
+        self.phonemes where these features are found
+        """
+        valid_ph = self.phonemes.copy()
+        for feature, value in feature_dict.items():
+            valid_ph = set([ph for ph in valid_ph if ph.feature_is(feature,value)])
+        return valid_ph
+
+    def get_phoneme_dictionary(self):
+        """
+        Return a dictionary {symbol:phoneme}
+        """
+        phoneme_dict = dict()
+        for phoneme in self.phonemes:
+            phoneme_dict[phoneme.symbol] = phoneme
+        return phoneme_dict
+    
+    #vowel subsystems
+     
     def define_vowel_subsystem(self,feature,autoadd=False):
         """
         Defines a pair of vowel subsystems based on a feature.
@@ -138,57 +192,51 @@ class Phonology(object):
         #if they all check out, add it
         self.vowel_subsystems[value + subsystem].add(v)
         v.subsystem[subsystem] = value
-          
-    def get_vowels(self):
+
+    def get_vowels_in_subsystem(self,subsystem,value):
         """
-        Gets the subset of self.phonemes which are vowels
+        Returns a set of vowels such that they are of value ("+" or "-") in the 
+        given subsystem.
         """
-        return {ph for ph in self.phonemes if ph.is_vowel()}
+        return self.vowel_subsystems[value+subsystem]
         
+    def get_vowel_subsystems(self):
+        """
+        Returns a list of the vowel subsystems defined in the phonology
+        """
+        subsystems = list(set([k[1:] for k in self.vowel_subsystems.keys()]))
+        return subsystems
         
-    def get_consonants(self):
+    def count_vowels(self):
         """
-        Gets the subset of self.phonemes which are consonants
+        Returns a dictionary giving the "total" number of vowels in the phonology 
+        followed by a breakdown by subsystems, if any, in turn broken down by "+"
+         or "-"
         """
-        return {ph for ph in self.phonemes if ph.is_consonant()}
-    
-    
-    def get_phoneme(self,ipa_str):
-        """
-        Return the Phoneme represented by ipa_str
-        """
-        our_phoneme = None
-        for phoneme in self.phonemes:
-            if phoneme.is_symbol(ipa_str):
-                our_phoneme = phoneme
-        if our_phoneme:
-            return our_phoneme
-        else:
-            raise Exception("Phoneme /{}/ not found in Phonology.".format(ipa_str))
-        
-    def get_phoneme_dictionary(self):
-        """
-        Return a dictionary {symbol:phoneme}
-        """
-        phoneme_dict = dict()
-        for phoneme in self.phonemes:
-            phoneme_dict[phoneme.symbol] = phoneme
-        return phoneme_dict
-            
+        count_dict = dict()
+        count_dict["total"] = len(self.get_vowels())
+        subsystems = self.get_vowel_subsystems()
+        for subsystem in subsystems:
+            count_dict[subsystem] = {"+":None,"-":None}
+            subp = len(self.get_vowels_in_subsystem(subsystem,"+"))
+            subm = len(self.get_vowels_in_subsystem(subsystem,"-"))
+            count_dict[subsystem]["+"], count_dict[subsystem]["-"] = subp, subm
+        return count_dict
         
 ################################################################################
 
 if __name__ == '__main__':
     vs = ["aː","iː","uː","a","i","u","ə"]
-    ls = ["+", "+", "+", "-","-","-","-"]
     
-    ph = Phonology(vs)
+    cs = ["p","t","k","s","x","r","l","w"]
+    
+    ph = Phonology(vs+cs)
 
     print(ph.phonemes)
     
     ph.define_vowel_subsystem("long",autoadd=True)
-#    for v, l in zip(vs,ls):
-#        pv = ph.get_phoneme(v)
-#        ph.assign_vowel_to_subsystem(pv,"long",l)
 
     print(ph.vowel_subsystems)
+    print(ph.get_phonemes_with_feature("voice","-"))
+    fd = {"voice":"-","continuant":"-"}
+    print(ph.get_phonemes_with_features(fd))
