@@ -1,5 +1,6 @@
 #Vulgar Latin wordlist
-#taken from http://www.nativlang.com/romance-languages/romance-dictionary.php
+#taken from
+#http://www.nativlang.com/romance-languages/romance-dictionary.php
 #
 #IPA          orthography gloss
 #-----------------------------
@@ -24,7 +25,7 @@ aut           aut         or
 'brak.kjʊ     bracciu     arm
 'bɔ.nʊ        bonu        good
 ka'bal.lʊ     caballu     horse
-ka'de.re       cadere      fall
+ka'de.re      cadere      fall
 'ka.ne        cane        dog
 kan'ta.re     cantare     sing
 kan'tjo.ne    cantione    song
@@ -113,12 +114,8 @@ non           non         not;no
 ne            ne          not2;no2
 nos           nos         we
 nos'al.tri    nosaltri    we_pl1
-nos'al.tros  nosaltros    we_pl2
+nos'al.tros   nosaltros   we_pl2
 'nɔ.vʊ        novu        new
-              nullam      nothing1
-              rem         nothing2
-              natam       nothing3
-              parabolare  speak
 'pa.tre       patre       father
 'pɛl.le       pelle       skin
 'pɛr.de.re    perdere     lose

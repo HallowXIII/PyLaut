@@ -19,9 +19,6 @@ from phone import MonoPhone
 #something which goes 'lol ur vowels are the same as in <list of languages here>'
 #this should be pretty easy, i think, since it is just looking at sets of vowels
 
-#short + long vowel systems
-#and vowel subsystems generally c.f. nort: http://www.incatena.org/viewtopic.php?p=1047560#p1047560
-
 #actually, get nort to consult, he is a vowelf*cker
 
 #dipthongs????
