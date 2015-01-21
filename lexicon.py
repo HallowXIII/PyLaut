@@ -1,4 +1,5 @@
 import word, phonology
+from tokenise_ipa import tokenise_ipa
 
 class Lexicon(object):
 
@@ -21,10 +22,10 @@ class Lexicon(object):
         #extract phonemes
         phonemes = set()
         for entry in self.entries:
-            #TODO: a call to a real IPA tokeniser
-            for symbol in entry.ipa:
-                if symbol not in "'.":
-                    phonemes.add(symbol)
+            tokenised = tokenise_ipa(entry.ipa)
+            for syllable in tokenised:
+                for phoneme in syllable:
+                    phonemes.add(phoneme)
 
         self.phonology = phonology.Phonology(list(phonemes))
         self.factory = word.WordFactory(self.phonology)
