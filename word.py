@@ -33,6 +33,48 @@ class Syllable(object):
         else:
             self.word_position = position
     
+    def get_word_position(self):
+        return self.word_position
+    
+    #TODO
+    
+    def count_nuclei(self):
+        """
+        Returns an estimated number of nuclei in this syllable.
+        If the value is greater than 1, something is likely wrong, e.g. the source
+        has been incorrectly syllabified. If it is less than 1 either something 
+        is wrong, or you are in the PNW.
+        """
+        pass
+    
+    def get_onset(self):
+        pass
+    def get_nucleus(self):
+        pass
+    def get_coda(self):
+        pass
+    
+    def get_rime(self):
+        pass
+        
+    def is_open(self):
+        pass
+    def is_closed(self):
+        pass
+             
+    def get_clusters(self):
+        """
+        Return a list of tuples of consonant clusters present in this syllable
+        """
+        pass
+    
+    def get_polyphthongs(self,glides=False):    
+        """
+        Return a list of tuples of polypthongs present in this syllable
+        If 'glides' is True, then semivowels count as vowels
+        """
+        pass
+        
 class Word(object):
     def __init__(self,syllables):
         self.syllables = syllables
