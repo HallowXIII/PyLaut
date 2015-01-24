@@ -508,56 +508,42 @@ class MonoPhone(Phone):
             return False
                       
     def get_sonority(self):
+        """
+        Returns an integer giving a rough quantification of the sonority of the
+         phone. 10 or greater is a vowel; laterals are 8, other approximants are 
+         9; nasals are 5, everything else is lower. 
+        """
+        #based on;
         #http://www.gial.edu/images/PDF/Parker%20dissertation.pdf
-        #low vowels:   16
-        #mid vowels:   15
-        #high vowels:  14
-        #          ə:  13
-        #          ɨ:  12
-        #glides:       11
-        #r:            10
-        #laterals:      9
-        #flaps:         8
-        #trills:        7
-        #nasals:        6
-        #h:             5
-        #voiced frics:  4
-        #voiced stops:  3
-        #voiced affrics:3
-        #vless frics:   3
-        #v. st.  afr:    2
-        #vls st. affr:  1
         if self.is_vowel():
-            if 0: #is ə
-                return 13
-            elif 0: #is ɨ
-                return 12
+            if self.is_central_vowel():
+                return 10
             elif self.is_low_vowel():
-                return 16
+                return 13
             elif self.is_mid_vowel():
-                return 15
+                return 12
             elif self.is_high_vowel():
-                return 14
+                return 11
             else:
                 return -1
         else:
             if self.is_lateral_approximant():
-                return 9
+                return 8
             elif self.is_approximant():
-                return 11
+                return 9
             elif self.is_nasal_stop():
-                return 6
+                return 5
             elif self.is_fricative() and self.is_voiced_consonant():
-                return 4
-            elif self.is_fricative() and not self.is_voiced_consonant():
                 return 3
+            elif self.is_fricative() and not self.is_voiced_consonant():
+                return 2
             elif self.is_stop() and self.is_voiced_consonant():
-                return 3    
+                return 2    
             elif self.is_stop() and not self.is_voiced_consonant():
-                return 1
+                return 0
             else:
                 return -1
-                       
+                       http://www.reddit.com/r/Minecraft/comments/2tgrjw/i_need_a_dwarven_statue_tutorial/
     def __init__(self,ipa_string=None):
         super().__init__()
         self.load_set_feature_set(MonoPhone._FEATURE_SET_NAME)

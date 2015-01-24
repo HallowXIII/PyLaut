@@ -36,6 +36,29 @@ class Syllable(object):
     def get_word_position(self):
         return self.word_position
     
+    def is_initial(self):
+        if self.get_word_position() == "initial":
+            return True
+        else:
+            return False
+            
+    def is_medial(self):
+        if self.get_word_position() == "medial":
+            return True
+        else:
+            return False
+
+    def is_final(self):
+        if self.get_word_position() == "final":
+            return True
+        else:
+            return False
+            
+    def is_monosyllable(self):
+        if self.get_word_position() == "monosyllable":
+            return True
+        else:
+            return False
     #TODO
     
     def count_nuclei(self):
@@ -46,7 +69,17 @@ class Syllable(object):
         is wrong, or you are in the PNW.
         """
         pass
-    
+        #check to see if there are phones w/ sonorities >= 10        
+        #reduce all vowels to level 10, n := 10
+
+        #if there are none, check for sonorities >= 5 and use max as n
+
+        #if there are neither, return 0
+        
+        #group together all adjacent ns
+        
+        #return the number of ns in the list
+ 
     def get_onset(self):
         pass
     def get_nucleus(self):
@@ -58,9 +91,13 @@ class Syllable(object):
         return self.get_nucleus() + self.get_coda()
         
     def is_open(self):
-        pass
+        if not self.get_coda():
+            return True
+        else:
+            return False
+            
     def is_closed(self):
-        pass
+        return not self.is_open()
              
     def get_clusters(self):
         """
