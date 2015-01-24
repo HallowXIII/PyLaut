@@ -55,7 +55,7 @@ class Syllable(object):
         pass
     
     def get_rime(self):
-        pass
+        return self.get_nucleus() + self.get_coda()
         
     def is_open(self):
         pass

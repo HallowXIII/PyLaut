@@ -23,7 +23,7 @@ class Phone(object):
     _IGNORE_DISTANCE_GREATER_THAN = 5
             
             
-    def __init__(self):
+    def __init__(self,ipa_str = None):
 
         self.feature_set_name = None
 
@@ -34,6 +34,9 @@ class Phone(object):
         
         #representation of the Phone
         self.symbol = "0"
+        
+        if ipa_str:
+            self.set_features_from_ipa(ipa_str) 
     
     
     def __repr__(self):
@@ -394,20 +397,167 @@ class MonoPhone(Phone):
     _FEATURE_SET_NAME = "monophone"
         
     _CONSONANTAL_FEATURE = "consonantal"
+    _LO_V_FEATURE, _HI_V_FEATURE = "low","high"
+    _FR_V_FEATURE, _BA_V_FEATURE = "front","back"
     
+    _VOI_C_FEATURE = "voice"
+    
+    _CONT_C_FEATURE = "continuant"
+    _SON_C_FEATURE = "sonorant"
+    
+    _LAT_C_FEATURE = "lateral"
+    _NAS_C_FEATURE = "nasal"
+    
+    #vowel properties
     def is_vowel(self):
         if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,MonoPhone._FALSE_FEATURE):
             return True
         else:
             return False
+    
+    def is_low_vowel(self):
+        if self.is_vowel() and self.feature_is(MonoPhone._LO_V_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
 
+    def is_high_vowel(self):
+        if self.is_vowel() and self.feature_is(MonoPhone._HI_V_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
+    
+    def is_mid_vowel(self):
+        if self.is_vowel() and not self.is_low_vowel() and not self.is_high_vowel():
+            return True
+        else:
+            return False
 
+    def is_front_vowel(self):
+        if self.is_vowel() and self.feature_is(MonoPhone._FR_V_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
+
+    def is_back_vowel(self):
+        if self.is_vowel() and self.feature_is(MonoPhone._BA_V_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
+    
+    def is_central_vowel(self):
+        if self.is_vowel() and not self.is_front_vowel() and not self.is_back_vowel():
+            return True
+        else:
+            return False
+    
+    #consonant properties
+                  
     def is_consonant(self):
         if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
+
+    def is_voiced_consonant(self):
+        if self.is_consonant() and self.feature_is(MonoPhone._VOI_C_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
+
+    def is_stop(self):
+        if self.is_consonant() and self.feature_is(MonoPhone._CONT_C_FEATURE,MonoPhone._FALSE_FEATURE):
+            return True
+        else:
+            return False
+    
+    def is_nasal_stop(self):
+        if self.is_stop() and self.feature_is(MonoPhone._NAS_C_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
             
+    def is_approximant(self):
+        if self.is_consonant():
+            if self.feature_is(MonoPhone._CONT_C_FEATURE,MonoPhone._TRUE_FEATURE):
+                if self.feature_is(MonoPhone._SON_C_FEATURE,MonoPhone._TRUE_FEATURE):
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
+                
+    def is_lateral_approximant(self):
+        if self.is_approximant() and self.feature_is(MonoPhone._LAT_C_FEATURE,MonoPhone._TRUE_FEATURE):
+            return True
+        else:
+            return False
+    
+    def is_fricative(self):
+        if self.is_consonant():
+            if self.feature_is(MonoPhone._CONT_C_FEATURE,MonoPhone._TRUE_FEATURE):
+                if self.feature_is(MonoPhone._SON_C_FEATURE,MonoPhone._FALSE_FEATURE):
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
+                      
+    def get_sonority(self):
+        #http://www.gial.edu/images/PDF/Parker%20dissertation.pdf
+        #low vowels:   16
+        #mid vowels:   15
+        #high vowels:  14
+        #          ə:  13
+        #          ɨ:  12
+        #glides:       11
+        #r:            10
+        #laterals:      9
+        #flaps:         8
+        #trills:        7
+        #nasals:        6
+        #h:             5
+        #voiced frics:  4
+        #voiced stops:  3
+        #voiced affrics:3
+        #vless frics:   3
+        #v. st.  afr:    2
+        #vls st. affr:  1
+        if self.is_vowel():
+            if 0: #is ə
+                return 13
+            elif 0: #is ɨ
+                return 12
+            elif self.is_low_vowel():
+                return 16
+            elif self.is_mid_vowel():
+                return 15
+            elif self.is_high_vowel():
+                return 14
+            else:
+                return -1
+        else:
+            if self.is_lateral_approximant():
+                return 9
+            elif self.is_approximant():
+                return 11
+            elif self.is_nasal_stop():
+                return 6
+            elif self.is_fricative() and self.is_voiced_consonant():
+                return 4
+            elif self.is_fricative() and not self.is_voiced_consonant():
+                return 3
+            elif self.is_stop() and self.is_voiced_consonant():
+                return 3    
+            elif self.is_stop() and not self.is_voiced_consonant():
+                return 1
+            else:
+                return -1
+                       
     def __init__(self,ipa_string=None):
         super().__init__()
         self.load_set_feature_set(MonoPhone._FEATURE_SET_NAME)
