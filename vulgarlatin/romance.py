@@ -33,14 +33,26 @@ print(latin_phonology.get_vowels())
 
 syllable_types = set()
 
+onsets, nuclei, codas = [], [], []
+
 for entry in latin_lexicon.entries:
     for syllable in entry.phonetic.syllables:
-        vs = []
-        vs = "".join(["V" if x.is_vowel() else "C" for x in syllable.phonemes])
-        syllable_types.add(vs)
-        print(list(zip(syllable.phonemes,vs)))
-        print(syllable.get_structure())
-        if syllable.has_clusters():
-            print(syllable.get_clusters())
-         
-print(syllable_types)
+        struct = syllable.get_structure()
+        onsets += [struct[0]]
+        nuclei += [struct[1]]
+        codas += [struct[2]]
+#        vs = []
+#        vs = "".join(["V" if x.is_vowel() else "C" for x in syllable.phonemes])
+#        syllable_types.add(vs)
+#        print(list(zip(syllable.phonemes,vs)))
+#        print(syllable.get_structure())
+#        if syllable.has_clusters():
+#            print(syllable.get_clusters())
+latin_phonology.set_phoneme_frequency_from_list("onset",onsets)
+latin_phonology.set_phoneme_frequency_from_list("nucleus",nuclei)
+latin_phonology.set_phoneme_frequency_from_list("coda",codas)
+
+p = latin_phonology.get_phoneme("u")
+
+latin_phonology.get_phoneme_frequency_total(p)
+

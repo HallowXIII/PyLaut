@@ -75,9 +75,29 @@ class Phonology(object):
         self.phonemes = {Phoneme(x) for x in phonemes}
         self.vowel_subsystems = dict()
         
+        self.phonotactics = {
+                             "permitted_syllable_types": None,
+                             "permitted_onset_list":     None,
+                             "permitted_coda_list":      None,
+                            }
+        
+        #between 0 and 1 -- please normalise
+        self.onset_frequencies = _ONSET_FS = dict()
+        self.nucleus_frequencies = _NUCLEUS_FS = dict()
+        self.coda_frequencies = _CODA_FS = dict()
+                
     def __repr__(self):
         return str(self.phonemes)
 
+    def add_phoneme(self,phoneme):
+        """
+        Add a Phoneme object to the Phonology
+        """
+        if type(phoneme) != Phoneme:
+            raise TypeError("{} not a Phoneme object".format(phoneme))
+        self.phonemes.add(phoneme)
+        self.phoneme_frequencies[phoneme] = None
+        
     def get_vowels(self):
         """
         Gets the subset of self.phonemes which are vowels
@@ -130,6 +150,53 @@ class Phonology(object):
             phoneme_dict[phoneme.symbol] = phoneme
         return phoneme_dict
     
+    #phoneme frequency
+    def set_phoneme_frequency_from_list(self,part,phoneme_list_list):
+        """
+        Given a [possibly long] list of lists of phonemes and a syllable part 
+        (onset,nucleus,coda), updates self.----_frequencies with appropriate, 
+        normalised values
+        """
+        mapdict = {
+                   "onset":self.onset_frequencies,
+                   "nucleus":self.nucleus_frequencies,
+                   "coda":self.coda_frequencies,
+                  }
+                  
+        freqdict = dict()
+        for phoneme_list in phoneme_list_list:
+            phoneme_tuple = tuple(phoneme_list)
+            if phoneme_tuple in freqdict:
+                freqdict[phoneme_tuple] += 1
+            else:
+                freqdict[phoneme_tuple] = 1
+        
+        total = sum(freqdict.values())
+        normalised_freqdict = {k : v/total for k,v in freqdict.items()}
+        if part == "onset":
+            self.onset_frequencies = normalised_freqdict
+        elif part == "nucleus":
+            self.nucleus_frequencies = normalised_freqdict
+        elif part == "coda":
+            self.coda_frequencies = normalised_freqdict
+        else:
+            raise Exception("{} not a valid syllable part".format(part))
+    
+    def get_phoneme_frequency_total(self,phoneme):
+        if type(phoneme) != Phoneme:
+            raise TypeError()
+        totalfreq = 0
+        for freqdict in [self.onset_frequencies,
+                         self.nucleus_frequencies,
+                         self.coda_frequencies]:
+            for sequence in freqdict:
+                #first condition is to skip null onsets,codas etcs
+                if len(sequence) > 1 and phoneme in sequence:
+                    totalfreq += freqdict[sequence]
+        #each freqdict is normalised between 0 and 1. adding them up makes it
+        #between 0 and 3, therefore this renormalises it
+        return totalfreq/3
+        
     #vowel subsystems
      
     def define_vowel_subsystem(self,feature,autoadd=False):
@@ -141,9 +208,8 @@ class Phonology(object):
         
         'feature' can be an arbitrary string, but if it matches an actual 
         phonological feature, then vowels can be added to it automatically.
-        
-        you would want to do this if e.g. all your long vowels are [+long]. 
-        you would not want to do it if they are english-type 'long vowels'
+        You would want to do this if e.g. all your long vowels are [+long]. 
+        You would not want to do it if they are english-type 'long vowels'
         
         """
         self.vowel_subsystems["+" + feature] = set()

@@ -183,7 +183,7 @@ class Syllable(object):
         else:
             return False
     
-    def get_polyphthong(self)
+    def get_polyphthong(self):
         if self.has_polyphthong:
             return self.get_nucleus()
         else:
