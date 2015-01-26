@@ -543,7 +543,7 @@ class MonoPhone(Phone):
                 return 0
             else:
                 return -1
-
+                       http://www.reddit.com/r/Minecraft/comments/2tgrjw/i_need_a_dwarven_statue_tutorial/
     def __init__(self,ipa_string=None):
         super().__init__()
         self.load_set_feature_set(MonoPhone._FEATURE_SET_NAME)

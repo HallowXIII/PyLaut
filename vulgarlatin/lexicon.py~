@@ -1,0 +1,85 @@
+#http://stackoverflow.com/posts/11158224/revisions
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir) 
+
+from pprint import pprint
+
+import word, phonology
+
+class Lexicon(object):
+
+    def __init__(self):
+        self.language = None
+        self.date = None
+        
+        self.phonology = None
+        self.word_factory = None
+        
+        self.entries = list()
+
+    def set_date(self,value,system):
+        self.date = (value,system)
+        
+    def add_entry(self,lexicon_entry):
+        self.entries += [lexicon_entry]
+        
+    def init_phonology(self):
+        #extract phonemes
+        phonemes = set()
+        for entry in self.entries:
+            #TODO: a call to a real IPA tokeniser
+            for symbol in entry.ipa:
+                if symbol not in "'.":
+                    phonemes.add(symbol)
+
+        self.phonology = phonology.Phonology(list(phonemes))
+        self.factory = word.WordFactory(self.phonology)
+        
+        for entry in self.entries:
+            entry.set_phonetic(self.factory.make_word(entry.ipa))
+
+class LexiconEntry(object):
+
+    def __init__(self,ipa_string,ortho_string,gloss):
+        self.ipa = ipa_string
+        self.orthography = ortho_string
+        self.gloss = gloss
+        self.phonetic = None
+    
+    def lexicon_entry(self):
+        return "{} {}: {}".format(self.orthography,self.__repr__(),self.gloss)
+                 
+    def __repr__(self):
+        if self.phonetic:
+            return str(self.phonetic)
+        else:
+            return "*/"+self.ipa+"/"
+    
+    def set_phonetic(self,phonetic_word):
+        self.phonetic = phonetic_word
+     
+################################################################################
+
+if __name__ == "__main__":
+
+    with open("vulgarlatin.lex","r") as raw_lexicon:
+        read_words = [x for x in raw_lexicon.read().splitlines() if x[0] != "#"]
+        split_words = [x.split() for x in read_words]
+
+    latin_lexicon = Lexicon()
+
+    latin_lexicon.language = "Vulgar Latin"
+    latin_lexicon.set_date(200,"AD")
+    
+    #make Lexicons
+    for line in split_words:
+        latin_lexicon.add_entry(LexiconEntry(*line))
+
+    latin_lexicon.init_phonology()
+
+for word in latin_lexicon.entries:
+    print(word.lexicon_entry())
+
+
