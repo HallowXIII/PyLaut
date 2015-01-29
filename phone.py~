@@ -230,7 +230,7 @@ class Phone(object):
                     dc_feat = Phone._feature_set_ipa_diacritics[char][1:]
                     dc_val = Phone._feature_set_ipa_diacritics[char][0]
                 except KeyError:
-                    raise KeyError(" {}  not found in IPA lookup.".format(char))
+                    raise KeyError("' {} ' not found in IPA lookup.".format(char))
                 if dc_val == Phone._TRUE_FEATURE:
                     self.set_features_true(dc_feat)
                 elif dc_val == Phone._FALSE_FEATURE:

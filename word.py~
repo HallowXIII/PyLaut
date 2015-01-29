@@ -7,9 +7,6 @@ class Syllable(object):
         self.stressed = False
         self.word_position = None
 
-    def to_json(self):
-        pass
-        
     def __repr__(self):
         output = [] if self.word_position in ["initial","monosyllable"] else ["-"]
         
