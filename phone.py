@@ -1,4 +1,5 @@
 from pprint import pprint
+import json
 
 class Phone(object):
     """
@@ -22,7 +23,6 @@ class Phone(object):
     #the longest distance between features that get_ipa_from_features will regard
     _IGNORE_DISTANCE_GREATER_THAN = 5
             
-            
     def __init__(self,ipa_str = None):
 
         self.feature_set_name = None
@@ -38,12 +38,39 @@ class Phone(object):
         if ipa_str:
             self.set_features_from_ipa(ipa_str) 
     
-    
+        self.JSON_OBJECT_NAME = "Phone"
+        self.JSON_VERSION_NO = "pre-alpha-1"
+        
     def __repr__(self):
         """
         The representation of a phone is the IPA symbol in square brackets
         """
         return "[" + self.symbol + "]"    
+    
+    def to_json(self):
+        """
+        Returns a JSON representation of the Phone
+        """
+        return json.dumps(self.__dict__)
+
+    def from_json(self,json_phone):
+        """
+        Reinitialise from JSON representation of the Phone
+        """
+        pre_phone = json.loads(json_phone)
+        
+        if "JSON_OBJECT_NAME" not in pre_phone:
+            raise Exception("JSON input malformed: no JSON_OBJECT_NAME given.")
+        if pre_phone["JSON_OBJECT_NAME"] != self.JSON_OBJECT_NAME:
+            raise Exception("JSON type error: was "
+            "given {}, should be {}.".format(pre_phone["JSON_OBJECT_NAME"],
+            self.JSON_OBJECT_NAME))
+        if pre_phone["JSON_VERSION_NO"] != self.JSON_VERSION_NO:
+            raise Exception("JSON version error: was "
+            "given {}, should be {}.".format(pre_phone["JSON_VERSION_NO"],
+            self.JSON_VERSION_NO))
+            
+        self.__dict__ = pre_phone
         
     def print_feature_list(self):
         """
@@ -399,6 +426,7 @@ class MonoPhone(Phone):
     _CONSONANTAL_FEATURE = "consonantal"
     _LO_V_FEATURE, _HI_V_FEATURE = "low","high"
     _FR_V_FEATURE, _BA_V_FEATURE = "front","back"
+    _RO_V_FEATURE = "round"
     
     _VOI_C_FEATURE = "voice"
     
@@ -447,6 +475,12 @@ class MonoPhone(Phone):
     
     def is_central_vowel(self):
         if self.is_vowel() and not self.is_front_vowel() and not self.is_back_vowel():
+            return True
+        else:
+            return False
+    
+    def is_rounded_vowel(self):
+        if self.is_vowel() and self.feature_is(MonoPhone._RO_V_FEATURE,MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
@@ -546,6 +580,8 @@ class MonoPhone(Phone):
 
     def __init__(self,ipa_string=None):
         super().__init__()
+        self.JSON_OBJECT_NAME = "Phone/MonoPhone"
+        self.JSON_VERSION_NO = "MonoPhone-pre-alpha-1"
         self.load_set_feature_set(MonoPhone._FEATURE_SET_NAME)
         if ipa_string:
             self.set_features_from_ipa(ipa_string)
@@ -575,3 +611,12 @@ if __name__ == "__main__":
     lol.set_features_from_ipa("tˤʰ")
     pprint(lol.features) 
     #yep, also this
+    
+    rofl = lol.to_json()
+    pprint(rofl)
+    
+    nong = MonoPhone()
+    nong.from_json(rofl)
+    print(nong.symbol)
+    nong.set_features_from_ipa("l")
+    pprint(nong.features)

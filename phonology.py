@@ -1,4 +1,5 @@
 from phone import MonoPhone
+import json
 
 #what should a phonology store?
 
@@ -60,13 +61,16 @@ class Phoneme(MonoPhone):
     def __init__(self,ipa_string=None):
         super().__init__(ipa_string)
         self.subsystem = dict()
+        
+        self.JSON_OBJECT_NAME = "Phoneme"
+        self.JSON_VERSION_NO = "pre-alpha-1"
 
     def __repr__(self):
         """
         The representation of a phoneme is the IPA symbol in slashes
         """
         return "/" + self.symbol + "/"
-        
+          
 class Phonology(object):
     """
     Refer to comments for inchoate comments.
@@ -75,20 +79,78 @@ class Phonology(object):
         self.phonemes = {Phoneme(x) for x in phonemes}
         self.vowel_subsystems = dict()
         
-        self.phonotactics = {
-                             "permitted_syllable_types": None,
-                             "permitted_onset_list":     None,
-                             "permitted_coda_list":      None,
-                            }
-        
         #between 0 and 1 -- please normalise
         self.onset_frequencies = _ONSET_FS = dict()
         self.nucleus_frequencies = _NUCLEUS_FS = dict()
         self.coda_frequencies = _CODA_FS = dict()
-                
+        
+        self.JSON_OBJECT_NAME = "Phonology"
+        self.JSON_VERSION_NO = "pre-alpha-1"
+
     def __repr__(self):
         return str(self.phonemes)
 
+    def jdefault(self,o):
+        """
+        Turns some un-JSONable objects into JSONable ones
+        """
+        if isinstance(o,set):
+            return list(o)
+        if isinstance(o,Phoneme):
+            return o.to_json()
+            
+    def to_json(self):
+        return json.dumps(self.__dict__, default=self.jdefault)
+    
+    def restore_phoneme_set(self,json_list):
+        """
+        Several things in Phonology are stored as phoneme sets. This converts a
+        JSONised phoneme set back into a proper one.
+        """
+        phoneme_set = set()
+        for json_item in json_list:
+            p = Phoneme()
+            p.from_json(json_item)
+            phoneme_set.add(p)
+        return phoneme_set
+            
+    def from_json(self,json_phonology):
+        pre_phonology = json.loads(json_phonology)
+
+        #no need to restore object + version: this checks for that
+        if "JSON_OBJECT_NAME" not in pre_phonology:
+            raise Exception("JSON input malformed: no JSON_OBJECT_NAME given.")
+        if pre_phonology["JSON_OBJECT_NAME"] != self.JSON_OBJECT_NAME:
+            raise Exception("JSON type error: was "
+            "given {}, should be {}.".format(pre_phonology["JSON_OBJECT_NAME"],
+            self.JSON_OBJECT_NAME))
+        if pre_phonology["JSON_VERSION_NO"] != self.JSON_VERSION_NO:
+            raise Exception("JSON version error: was "
+            "given {}, should be {}.".format(pre_phonology["JSON_VERSION_NO"],
+            self.JSON_VERSION_NO))
+            
+        #restore main phoneme set
+        self.phonemes = self.restore_phoneme_set(pre_phonology["phonemes"])
+        
+        #restore vowel subsystems dict
+        pre_vowel_subsystems = {}
+        if pre_phonology["vowel_subsystems"]:
+            for key in pre_phonology["vowel_subsystems"]:
+                pre_phoneme_set = pre_phonology["vowel_subsystems"][key]
+                phoneme_set = self.restore_phoneme_set(pre_phoneme_set)
+                pre_vowel_subsystems[key] = phoneme_set
+        self.vowel_subsystems = pre_vowel_subsystems
+        
+        #restore frequency counts
+        if "onset_frequencies" in pre_phonology:
+            self.onset_frequencies = pre_phonology["onset_frequencies"]
+        if "nucleus_frequencies" in pre_phonology:
+            self.nucleus_frequencies = pre_phonology["nucleus_frequencies"]
+        if "coda_frequencies" in pre_phonology:
+            self.coda_frequencies = pre_phonology["coda_frequencies"]
+        
+        #ADD NEW THINGS HERE
+        
     def add_phoneme(self,phoneme):
         """
         Add a Phoneme object to the Phonology
@@ -165,11 +227,11 @@ class Phonology(object):
                   
         freqdict = dict()
         for phoneme_list in phoneme_list_list:
-            phoneme_tuple = tuple(phoneme_list)
-            if phoneme_tuple in freqdict:
-                freqdict[phoneme_tuple] += 1
+            phoneme_string = "".join([ph.__repr__() for ph in phoneme_list])
+            if phoneme_string in freqdict:
+                freqdict[phoneme_string] += 1
             else:
-                freqdict[phoneme_tuple] = 1
+                freqdict[phoneme_string] = 1
         
         total = sum(freqdict.values())
         normalised_freqdict = {k : v/total for k,v in freqdict.items()}
@@ -183,6 +245,10 @@ class Phonology(object):
             raise Exception("{} not a valid syllable part".format(part))
     
     def get_phoneme_frequency_total(self,phoneme):
+        """
+        Given a phoneme, returns the frequency of that phoneme, relative to all 
+        phonemes. This counts phonemes in clusters as well.
+        """
         if type(phoneme) != Phoneme:
             raise TypeError()
         totalfreq = 0
@@ -191,10 +257,12 @@ class Phonology(object):
                          self.coda_frequencies]:
             for sequence in freqdict:
                 #first condition is to skip null onsets,codas etcs
-                if len(sequence) > 1 and phoneme in sequence:
+                if len(sequence) > 1 and phoneme.symbol in sequence:
                     totalfreq += freqdict[sequence]
         #each freqdict is normalised between 0 and 1. adding them up makes it
         #between 0 and 3, therefore this renormalises it
+        
+        #TODO check this gives the right answer
         return totalfreq/3
         
     #vowel subsystems
@@ -303,3 +371,9 @@ if __name__ == '__main__':
     print(ph.get_phonemes_with_feature("voice","-"))
     fd = {"voice":"-","continuant":"-"}
     print(ph.get_phonemes_with_features(fd))
+    
+    j = ph.to_json()
+    
+    f = Phonology()
+    f.from_json(j)
+    print(f.get_phonemes_with_feature("voice","-"))

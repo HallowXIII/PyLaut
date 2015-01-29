@@ -54,3 +54,12 @@ latin_phonology.set_phoneme_frequency_from_list("coda",codas)
 p = latin_phonology.get_phoneme("u")
 
 print(latin_phonology.get_phoneme_frequency_total(p))
+
+lol = latin_phonology.to_json()
+
+import phonology
+
+rofl = phonology.Phonology()
+rofl.from_json(lol)
+
+print(rofl.get_phoneme_frequency_total(p))
