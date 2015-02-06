@@ -1,3 +1,20 @@
-* infinite rice pudding
+BASIC PHONOLOGY STUFF
+=====================
+* what ways of representing IPA sounds will be used
+  -- how many diacritics will we support
+  -- tautological forms
+
+CLEVER PHONOLOGY STUFF
+======================
+* production of charts
 * customizable word generator -- basically, a bit of probability shit on top of our word-handling
+
+SOUND CHANGES
+=============
+* what should PyLautLang look like?
+* some notion of sound change objects
 * extensible parser for $sound_change_language 
+
+MISC
+====
+* unlimited rice pudding
