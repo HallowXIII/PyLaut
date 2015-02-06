@@ -16,8 +16,14 @@ SOUND CHANGES
 =============
 * what should PyLautLang look like?
 * some notion of sound change objects
+* arranging sound change objects in time and space
 * extensible parser for $sound_change_language 
-
+* sound-change/phonology interactions
+  -- updating of clever phonology stuff
+  -- warnings about gaps in systems/systemzwang stuff produced by sound changes
+* tracking of lexicons
+  -- noting when irregular forms/declensions/conjugations/analogy opportunities are created
+  
 MISC
 ====
 * unlimited rice pudding
