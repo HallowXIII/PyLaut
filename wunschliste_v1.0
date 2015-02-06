@@ -1,1 +1,3 @@
 * infinite rice pudding
+* customizable word generator -- basically, a bit of probability shit on top of our word-handling
+* extensible parser for $sound_change_language 
