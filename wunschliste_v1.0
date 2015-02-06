@@ -10,6 +10,10 @@ BASIC PHONOLOGY STUFF
 CLEVER PHONOLOGY STUFF
 ======================
 * production of charts
+* syllable structure and phonotactics
+  -- deriving FROM lexicon
+  -- defining manually/correcting autoderived rules
+  -- detecting errors in lexicon
 * customizable word generator -- basically, a bit of probability shit on top of our word-handling
 
 SOUND CHANGES
