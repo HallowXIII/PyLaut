@@ -3,6 +3,9 @@ BASIC PHONOLOGY STUFF
 * what ways of representing IPA sounds will be used
   -- how many diacritics will we support
   -- tautological forms
+* how to represent diphthongs
+  -- bearing in mind that they pattern differently from consonant clusters and take roles
+     more like pure vowels in systems-analyses
 
 CLEVER PHONOLOGY STUFF
 ======================
