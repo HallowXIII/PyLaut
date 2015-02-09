@@ -14,6 +14,7 @@ CLEVER PHONOLOGY STUFF
   -- deriving FROM lexicon
   -- defining manually/correcting autoderived rules
   -- detecting errors in lexicon
+  -- autosyllabification of words
 * customizable word generator -- basically, a bit of probability shit on top of our word-handling
 
 SOUND CHANGES
