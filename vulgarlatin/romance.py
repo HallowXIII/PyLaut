@@ -28,6 +28,7 @@ for word in latin_lexicon.entries:
 
 latin_phonology = latin_lexicon.phonology
 print(latin_phonology.get_vowels())
+print(latin_phonology.get_consonants())
 
 syllable_types = set()
 
@@ -50,7 +51,3 @@ for entry in latin_lexicon.entries:
 latin_phonology.set_phoneme_frequency_from_list("onset",onsets)
 latin_phonology.set_phoneme_frequency_from_list("nucleus",nuclei)
 latin_phonology.set_phoneme_frequency_from_list("coda",codas)
-
-p = latin_phonology.get_phoneme("u")
-
-print(latin_phonology.get_phoneme_frequency_total(p))

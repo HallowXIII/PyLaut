@@ -1,0 +1,40 @@
+Family: Everywhere
+
+ProtoLanguage: Shapshirruckish
+    Lexicon: shap.lex
+    Date: -3000
+    
+    Language: Proto-Martial
+        SoundChanges: martial.sc
+        Lexicon: martial.dlex
+        Date: -1000
+#        
+#        Language: Classical Glorious
+#            SoundChanges: glorious.sc
+#            Lexicon: glorious.dlex
+#            Date: 0
+#        
+#        Language: Minoritish
+#            SoundChanges: minoritish.sc
+#            Lexicon: minoritish.dlex
+#            Date: 0
+#        
+#    Language: Proto-Religio-Marine
+#        SoundChanges: relmar.sc
+#        Lexicon: relmar.dlex
+#        Date: -2000
+#    
+#        Language: Proto-Religious
+#            SoundChanges: religious.sc
+#            Lexicon: religious.dlex
+#            Date: -1000
+#        
+#            Language Universalic
+#                SoundChanges: universalic.sc
+#                Lexicon: universalic.dlex
+#                Date: 0
+#                
+#        Language: Proto-Marine
+#            SoundChanges: marine.sc
+#            Lexicon: marine.dlex
+#            Date: -1000
