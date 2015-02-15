@@ -29,8 +29,8 @@ Merge({/d/,/t/},/l/}) / _[+vowel, rounded, back]
 {/ui/ /ai/ /iə/} -> {/u:/ /e:/ /i:/}
 
 #MSR
-{/ə/,/ɯ/,/ɒ/} -> {/e:/ /ɯ:/ /ɒ:/} / syllable(1)
-              -> {/a/  /u/  /a/}  / if syllable(1).nucleus is [+round]
+{/ə/,/ɯ/,/ɒ/} -> {/e:/ /ɯ:/ /ɒ:/} / Syllable[0]
+              -> {/a/  /u/  /a/}  / if Syllable[0].nucleus is [+round]
               -> {/i/  /i/  /a/}
 
 /ə/ -> /e/
