@@ -195,7 +195,8 @@ class Syllable(object):
 class Word(object):
     def __init__(self,syllables):
         self.syllables = syllables
-
+        self.phonemes = [syl.phonemes for syl in self.syllables]
+        
     def __repr__(self):
         word_repr = "/"
         for syl in self.syllables:

@@ -183,14 +183,12 @@ class Phone(object):
         
         for feature_name in feature_names:
             self.set_feature(feature_name,hey_boo)
-
-            
+                
     def set_features_true(self,feature_names):
         """
         Sets the feature_name of the Phone to be true/+
         """
         self.set_features_bool(feature_names,Phone._TRUE_FEATURE)
-
     
     def set_features_false(self,feature_names):
         """

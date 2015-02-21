@@ -1,5 +1,6 @@
 import word, phonology
 from tokenise_ipa import tokenise_ipa
+import random
 
 class Lexicon(object):
 
@@ -12,6 +13,26 @@ class Lexicon(object):
         
         self.entries = list()
 
+    def get_random_entry(self):
+        return random.choice(self.entries)
+    
+    def get_random_entry_with_segment(self,segment):
+        rand_entry = ""
+        while segment not in rand_entry.__repr__():
+            rand_entry = self.get_random_entry()
+        return rand_entry
+        
+    def from_file(self,file_obj):
+        with file_obj as raw_lexicon:
+            read_words = [x for x in raw_lexicon.read().splitlines() if x[0] != "#"]
+            split_words = [x.split() for x in read_words]
+        
+        #make Lexicons
+        for line in split_words:
+            self.add_entry(LexiconEntry(*line))
+
+        self.init_phonology()
+        
     def set_date(self,value,system):
         self.date = (value,system)
         

@@ -1,40 +1,52 @@
-Family: Everywhere
-
-ProtoLanguage: Shapshirruckish
-    Lexicon: shap.lex
-    Date: -3000
-    
-    Language: Proto-Martial
-        SoundChanges: martial.sc
-        Lexicon: martial.dlex
-        Date: -1000
-#        
-#        Language: Classical Glorious
-#            SoundChanges: glorious.sc
-#            Lexicon: glorious.dlex
-#            Date: 0
-#        
-#        Language: Minoritish
-#            SoundChanges: minoritish.sc
-#            Lexicon: minoritish.dlex
-#            Date: 0
-#        
-#    Language: Proto-Religio-Marine
-#        SoundChanges: relmar.sc
-#        Lexicon: relmar.dlex
-#        Date: -2000
-#    
-#        Language: Proto-Religious
-#            SoundChanges: religious.sc
-#            Lexicon: religious.dlex
-#            Date: -1000
-#        
-#            Language Universalic
-#                SoundChanges: universalic.sc
-#                Lexicon: universalic.dlex
-#                Date: 0
-#                
-#        Language: Proto-Marine
-#            SoundChanges: marine.sc
-#            Lexicon: marine.dlex
-#            Date: -1000
+{"Name":"Everywhere",
+ "ProtoLanguage":"Shapshirruckish",
+ "ProtoLexicon":"shap.lex",
+ "ProtoDate": -3000,
+ "Languages": [
+              {"Name":"Proto-Martial",
+               "SoundChanges":"martial.sc",
+               "LexiconChanges":"martial.dlex",
+               "Date": -1000,
+               "Languages": [
+                            {"Name":"Glorious",
+                             "SoundChanges":"glorious.sc",
+                             "LexiconChanges":"glorious.dlex",
+                             "Date":0,
+                             "Languages":[]
+                            },
+                            {"Name":"Minoritish",
+                             "SoundChanges":"minoritish.sc",
+                             "LexiconChanges":"minoritish.dlex",
+                             "Date":0,
+                             "Languages":[]
+                            }
+                            ]
+              },
+              {"Name":"Proto-Religio-Marine",
+               "SoundChanges":"relmar.sc",
+               "LexiconChanges":"relmar.dlex",
+               "Date": -2000,
+               "Languages": [
+                            {"Name":"Proto-Religious",
+                             "SoundChanges":"religious.sc",
+                             "LexiconChanges":"religious.dlex",
+                             "Date":-1000,
+                             "Languages":[
+                                         {"Name":"Universalic",
+                                          "SoundChanges":"universalic.sc",
+                                          "LexiconChanges":"universalic.dlex",
+                                          "Date":0,
+                                          "Languages":[]
+                                         }
+                                         ]
+                            },
+                            {"Name":"Proto-Marine",
+                             "SoundChanges":"marine.sc",
+                             "LexiconChanges":"marine.dlex",
+                             "Date":-1000,
+                             "Languages":[]
+                            }
+                            ]
+              }
+              ]
+}
