@@ -122,8 +122,6 @@ class FamilyFactory(object):
                         
         def_file = open(self.lexpath + self.file_name,"r")
         b = json.load(def_file)
-
-        pprint(b)
         
         proto_lang = ProtoLanguage()
         proto_lang.set_name(b["ProtoLanguage"])
@@ -154,5 +152,4 @@ class FamilyFactory(object):
 
 a = FamilyFactory("everywhere.fam").get()
 
-a.print_langs()
         

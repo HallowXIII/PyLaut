@@ -1,5 +1,6 @@
 from phone import MonoPhone
 import json
+from copy import deepcopy
 
 #what should a phonology store?
 
@@ -33,7 +34,19 @@ class Phoneme(MonoPhone):
     """
     Wrapper/decorator for Phones, containing extra information.
     """
-    
+    def __init__(self,ipa_string=None):
+        super().__init__(ipa_string)
+        self.subsystem = dict()
+        
+        self.JSON_OBJECT_NAME = "Phoneme"
+        self.JSON_VERSION_NO = "pre-alpha-1"
+
+    def __repr__(self):
+        """
+        The representation of a phoneme is the IPA symbol in slashes
+        """
+        return "/" + self.symbol + "/"
+            
     def is_in_vowel_subsystem(self,subsystem):
         """
         Returns True if the Phoneme is in a vowel subsystem 'subsystem' 
@@ -57,19 +70,9 @@ class Phoneme(MonoPhone):
                             "{}.".format(self.symbol,subsystem))
         else:
             return self.subsystem[subsystem]
-        
-    def __init__(self,ipa_string=None):
-        super().__init__(ipa_string)
-        self.subsystem = dict()
-        
-        self.JSON_OBJECT_NAME = "Phoneme"
-        self.JSON_VERSION_NO = "pre-alpha-1"
 
-    def __repr__(self):
-        """
-        The representation of a phoneme is the IPA symbol in slashes
-        """
-        return "/" + self.symbol + "/"
+    def copy(self):
+            return deepcopy(self)
           
 class Phonology(object):
     """
@@ -148,9 +151,7 @@ class Phonology(object):
             self.nucleus_frequencies = pre_phonology["nucleus_frequencies"]
         if "coda_frequencies" in pre_phonology:
             self.coda_frequencies = pre_phonology["coda_frequencies"]
-        
-        #ADD NEW THINGS HERE
-        
+            
     def add_phoneme(self,phoneme):
         """
         Add a Phoneme object to the Phonology
