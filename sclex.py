@@ -3,7 +3,6 @@
 
 import re
 import lexer
-
 #This is basically just a listing of the operators we recognize. 
        
 RESERVED = 'RESERVED'
