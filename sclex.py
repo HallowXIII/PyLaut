@@ -26,7 +26,9 @@ token_exprs = [
         (r'\]',         RESERVED),
         (r'#',          RESERVED),
         (r'\$',         RESERVED),
-        (r'(?!_)[\w+]', LIT)
+        (r'\+',         RESERVED),
+        (r'-',          RESERVED),
+        (r'[^\W_]+', LIT)
         ]
 
 #TODO review character set
@@ -35,7 +37,7 @@ def sclex(chars):
     return lexer.lex(chars, token_exprs)
 
 #DEBUG
-#characters = "a->b"
+#characters = "ad[+aptu -plop]->b/V_CC"
 #tokens = sclex(characters)
 #for token in tokens:
 #    print(token)
