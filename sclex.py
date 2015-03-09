@@ -19,7 +19,7 @@ def lex(chars, token_exprs, debug=0):
                     tokens.append(token)
                     break
             if not match:
-                raise Exception("Syntax Error: %s is not a legal expression\n"
+                raise Exception("Syntax Error: %s is not a legal expression\n")
             else:
                 pos = match.end(0)
         return tokens
