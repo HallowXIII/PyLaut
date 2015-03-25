@@ -10,7 +10,6 @@ class Change(object):
         if type(phoneme_list) == set:
             phoneme_list = list(phoneme_list)
         self.domain.extend(phoneme_list)
-        
     def add_feature_changes(self,feature_dict):
         for feature, value in feature_dict.items():
             self.changes[feature] = value
@@ -22,7 +21,7 @@ class UnconditionalShift(Change):
     def __init__(self):
         super().__init__()
         self.condition = True
-        
+
     def compute_codomain(self):
         self.codomain = []
         print(self.domain)
@@ -40,7 +39,7 @@ class UnconditionalShift(Change):
                     newphoneme = phoneme.copy()
                     newphoneme.set_features_null(feature)
                 newphoneme.set_symbol_from_features()
-                self.codomain += [newphoneme]
+                self.codomain += [newphoneme]       
 
     def apply(self,word_obj,word_factory):
         newword = word_factory.make_word(word_obj.__repr__()[1:-1])
@@ -51,28 +50,44 @@ class UnconditionalShift(Change):
                         syllable[j] = o
         return newword
 
-class ChangeFactory(object):
-    def __init__(self):
-        pass     
-        
-shapfam = family.FamilyFactory("everywhere.fam").get()
-shap = shapfam.protolang
-sample = shap.lexicon.get_random_entry_with_segment("p") 
+class ConditionalShift(UnconditionalShift):
+    def __init__(self, condition):
+        super().__init__()
+        self.condition = condition
 
-lol = {"voice":"-",
-       "continuant":"-"
-      }
-unvoiced_stops = shap.lexicon.phonology.get_phonemes_with_features(lol)
+#    def apply(self,word_obj,word_factory):
+#        newword = word_factory.make_word(word_obj.__repr__()[1:-1])
+#        for i, o in zip(self.domain,self.codomain):
+#            for syllable in newword.phonemes:
+#                for j, phoneme in enumerate(syllable):
+#                    if phoneme == i and self.condition[phoneme] == True:
+#                        syllable[j] = o 
+#        return newword                  
+                                         
+class ChangeFactory(object):             
+    def __init__(self):                  
+        pass                             
+                                         
+if __name__ == "__main__":               
 
-lenite = UnconditionalShift()
-lenite.add_to_domain(unvoiced_stops)
+    shapfam = family.FamilyFactory("everywhere.fam").get()
+    shap = shapfam.protolang
+    sample = shap.lexicon.get_random_entry_with_segment("p") 
 
-change = {"voice":"+"}
-lenite.add_feature_changes(change)
-lenite.compute_codomain()
-print(lenite.codomain)
+    lol = {"voice":"-",
+           "continuant":"-"
+          }
+    unvoiced_stops = shap.lexicon.phonology.get_phonemes_with_features(lol)
 
-shapfac = word.WordFactory(shap.lexicon.phonology)
-sample2 = lenite.apply(sample,shapfac)
+    lenite = UnconditionalShift()
+    lenite.add_to_domain(unvoiced_stops)
 
-print(sample,sample2)
+    change = {"voice":"+"}
+    lenite.add_feature_changes(change)
+    lenite.compute_codomain()
+    print(lenite.codomain)
+
+    shapfac = word.WordFactory(shap.lexicon.phonology)
+    sample2 = lenite.apply(sample,shapfac)
+
+    print(sample,sample2)
