@@ -179,5 +179,4 @@ def parse(program):
 #DEBUG
 #the behavior of brackets isn't good at all, it adds an excessive layer of lists
 #(if no other way is found this might be fixable in the translator)
-print(parse("[+stop, -voice] -> [+stop, +voice] / V_V"))
-print(parse("[a]"))
+#print(parse("[+stop, -voice] -> [+stop, +voice] / V_V"))

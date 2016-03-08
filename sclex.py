@@ -11,6 +11,7 @@ LIT = 'LIT'
 token_exprs = [
         (r'[ \\n\\t]+', None),
         (r'/\*[^\\n]*', None),
+        (r',',          RESERVED),
         (r'->',         RESERVED),
         (r'/',          RESERVED),
         (r'_',          RESERVED),
@@ -28,7 +29,7 @@ token_exprs = [
         (r'\$',         RESERVED),
         (r'\+',         RESERVED),
         (r'-',          RESERVED),
-        (r'[^\W_]+', LIT)
+        (r'[^\W_]+',    LIT)
         ]
 
 #TODO review character set
