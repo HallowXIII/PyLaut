@@ -344,9 +344,6 @@ class Phone(object):
             return symbol
         #otherwise proceed: we must identify a similar base IPA glyph and then
         #add diacritics
-        else:
-            pass
-            
         #get feature list to compare to Phone._feature_set_ipa_dict
         our_feature_list = self.get_feature_list()
         #stores (features differing, number of different features = hamming dist)
@@ -355,7 +352,8 @@ class Phone(object):
 
         for ipa_char in Phone._feature_set_ipa_dict:
             ipa_feature_list = Phone._feature_set_ipa_dict[ipa_char] 
-            diffs, hamming_dist = self.feature_hamming(our_feature_list,ipa_feature_list)
+            diffs, hamming_dist = self.feature_hamming(our_feature_list,
+                                                       ipa_feature_list)
             #ignore ipa symbols infeasibly far -- they are unlikely to make good
             #representations
             if hamming_dist > Phone._IGNORE_DISTANCE_GREATER_THAN:
@@ -381,7 +379,8 @@ class Phone(object):
         
         #reverse Phone._feature_set_ipa_diacritics so we can look up diacritics
         #from the feature        
-        reverse_diacritics = {a: b for b,a in Phone._feature_set_ipa_diacritics.items()}
+        reverse_diacritics = {a: b for b,a in
+                              Phone._feature_set_ipa_diacritics.items()}
 
         #this will hold our final candidates
         valid = list()
@@ -392,7 +391,9 @@ class Phone(object):
                 #every feature in the first-round candidates is checked to see if
                 #there is a diacritic, if there is we note what the diacritic is,
                 #otherwise we leave an ominous blank
-                purged_diffs = [reverse_diacritics[diff] if diff in reverse_diacritics else None for diff in diffs]
+                purged_diffs = [reverse_diacritics[diff] if
+                                diff in reverse_diacritics else
+                                None for diff in diffs]
                 if None in purged_diffs:
                     pass
                 else:
@@ -439,49 +440,57 @@ class MonoPhone(Phone):
     
     #vowel properties
     def is_vowel(self):
-        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,MonoPhone._FALSE_FEATURE):
+        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,
+                           MonoPhone._FALSE_FEATURE):
             return True
         else:
             return False
     
     def is_low_vowel(self):
-        if self.is_vowel() and self.feature_is(MonoPhone._LO_V_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_vowel() and self.feature_is(MonoPhone._LO_V_FEATURE,
+                                               MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_high_vowel(self):
-        if self.is_vowel() and self.feature_is(MonoPhone._HI_V_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_vowel() and self.feature_is(MonoPhone._HI_V_FEATURE,
+                                               MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
     
     def is_mid_vowel(self):
-        if self.is_vowel() and not self.is_low_vowel() and not self.is_high_vowel():
+        if (self.is_vowel() and not self.is_low_vowel() 
+            and not self.is_high_vowel()):
             return True
         else:
             return False
 
     def is_front_vowel(self):
-        if self.is_vowel() and self.feature_is(MonoPhone._FR_V_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_vowel() and self.feature_is(MonoPhone._FR_V_FEATURE,
+                                               MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_back_vowel(self):
-        if self.is_vowel() and self.feature_is(MonoPhone._BA_V_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_vowel() and self.feature_is(MonoPhone._BA_V_FEATURE,
+                                               MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
     
     def is_central_vowel(self):
-        if self.is_vowel() and not self.is_front_vowel() and not self.is_back_vowel():
+        if (self.is_vowel() and not self.is_front_vowel() 
+            and not self.is_back_vowel()):
             return True
         else:
             return False
     
     def is_rounded_vowel(self):
-        if self.is_vowel() and self.feature_is(MonoPhone._RO_V_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_vowel() and self.feature_is(MonoPhone._RO_V_FEATURE,
+                                               MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
@@ -489,33 +498,39 @@ class MonoPhone(Phone):
     #consonant properties
                   
     def is_consonant(self):
-        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,
+                           MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_voiced_consonant(self):
-        if self.is_consonant() and self.feature_is(MonoPhone._VOI_C_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_consonant() and self.feature_is(MonoPhone._VOI_C_FEATURE,
+                                                   MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_stop(self):
-        if self.is_consonant() and self.feature_is(MonoPhone._CONT_C_FEATURE,MonoPhone._FALSE_FEATURE):
+        if self.is_consonant() and self.feature_is(MonoPhone._CONT_C_FEATURE,
+                                                   MonoPhone._FALSE_FEATURE):
             return True
         else:
             return False
     
     def is_nasal_stop(self):
-        if self.is_stop() and self.feature_is(MonoPhone._NAS_C_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_stop() and self.feature_is(MonoPhone._NAS_C_FEATURE,
+                                              MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
             
     def is_approximant(self):
         if self.is_consonant():
-            if self.feature_is(MonoPhone._CONT_C_FEATURE,MonoPhone._TRUE_FEATURE):
-                if self.feature_is(MonoPhone._SON_C_FEATURE,MonoPhone._TRUE_FEATURE):
+            if self.feature_is(MonoPhone._CONT_C_FEATURE,
+                               MonoPhone._TRUE_FEATURE):
+                if self.feature_is(MonoPhone._SON_C_FEATURE,
+                                   MonoPhone._TRUE_FEATURE):
                     return True
                 else:
                     return False
@@ -525,15 +540,18 @@ class MonoPhone(Phone):
             return False
                 
     def is_lateral_approximant(self):
-        if self.is_approximant() and self.feature_is(MonoPhone._LAT_C_FEATURE,MonoPhone._TRUE_FEATURE):
+        if self.is_approximant() and self.feature_is(MonoPhone._LAT_C_FEATURE,
+                                                     MonoPhone._TRUE_FEATURE):
             return True
         else:
             return False
     
     def is_fricative(self):
         if self.is_consonant():
-            if self.feature_is(MonoPhone._CONT_C_FEATURE,MonoPhone._TRUE_FEATURE):
-                if self.feature_is(MonoPhone._SON_C_FEATURE,MonoPhone._FALSE_FEATURE):
+            if self.feature_is(MonoPhone._CONT_C_FEATURE,
+                               MonoPhone._TRUE_FEATURE):
+                if self.feature_is(MonoPhone._SON_C_FEATURE,
+                                   MonoPhone._FALSE_FEATURE):
                     return True
                 else:
                     return False
@@ -599,7 +617,7 @@ if __name__ == "__main__":
     lol.set_symbol_from_features()
     print(lol.symbol)
     #how nice, it works and prints m̥ :)))
-    lol.set_features_from_ipa("g")
+    lol.set_features_from_ipa("ɡ")
     lol.set_features_false("voice")  
     lol.set_symbol_from_features()
     print(lol.symbol)

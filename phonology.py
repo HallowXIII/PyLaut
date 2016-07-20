@@ -78,8 +78,9 @@ class Phonology(object):
     """
     Refer to comments for inchoate comments.
     """
-    def __init__(self,phonemes=[]):
-        self.phonemes = {Phoneme(x) for x in phonemes}
+    def __init__(self, phonemes = [], phoneme_cls = Phoneme):
+        self.phoneme_cls = phoneme_cls
+        self.phonemes = {self.phoneme_cls(x) for x in phonemes}
         self.vowel_subsystems = dict()
         
         #between 0 and 1 -- please normalise
@@ -156,8 +157,9 @@ class Phonology(object):
         """
         Add a Phoneme object to the Phonology
         """
-        if type(phoneme) != Phoneme:
-            raise TypeError("{} not a Phoneme object".format(phoneme))
+        if type(phoneme) != phoneme_cls:
+            raise TypeError("{} not a {} object".format(phoneme,
+                                                        self.phoneme_cls))
         self.phonemes.add(phoneme)
         self.phoneme_frequencies[phoneme] = None
         
@@ -250,7 +252,7 @@ class Phonology(object):
         Given a phoneme, returns the frequency of that phoneme, relative to all 
         phonemes. This counts phonemes in clusters as well.
         """
-        if type(phoneme) != Phoneme:
+        if type(phoneme) != self.phoneme_cls:
             raise TypeError()
         totalfreq = 0
         for freqdict in [self.onset_frequencies,
@@ -304,9 +306,11 @@ class Phonology(object):
         with the feature 'feature' in the subsystem that is +- 'value'
         """
         #check v is a Phoneme
-        if type(v) != Phoneme:
-            raise Exception("Input '{}' not a Phoneme.\n"
-                            "{} not valid type.".format(v,type(v)))
+        if type(v) != self.phoneme_cls:
+            raise Exception("Input '{}' not a {} object.\n"
+                            "{} not valid type.".format(v,
+                                                        self.phoneme_cls,
+                                                        type(v)))
                     
         #check v is a vowel
         if not v.is_vowel():

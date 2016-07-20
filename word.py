@@ -1,5 +1,7 @@
 from phone import MonoPhone
 from phonology import Phonology
+import itertools
+import sys
 
 class Syllable(object):
     def __init__(self,phonemes):
@@ -32,7 +34,7 @@ class Syllable(object):
         
     def set_word_position(self,position):
         if position not in ["initial","medial","final","monosyllable"]:
-            raise Exception()
+            raise ValueError()
         else:
             self.word_position = position
     
@@ -70,12 +72,10 @@ class Syllable(object):
         else:
             return False
             
-    def count_nuclei(self):
+    def find_nuclei(self):
         """
-        Returns an estimated number of nuclei in this syllable.
-        If the value is greater than 1, something is likely wrong, e.g. the source
-        has been incorrectly syllabified. If it is less than 1 either something 
-        is wrong, or you are in the PNW.
+        Finds all possible nuclei in the syllable. So far, has problems
+        dealing with things that aren't easy and unambiguous.
         """
         sonorities = [ph.get_sonority() for ph in self.phonemes]
         #check to see if there are phones w/ sonorities >= 10        
@@ -88,7 +88,7 @@ class Syllable(object):
             maximum_sonority = max(sonorities)
         #if there are neither, return 0
         else:
-            return 0
+            return []
         
         #group together all adjacent ns
         #TODO: fun fact: len(a) is too big, and a smaller value will work. find it
@@ -98,8 +98,17 @@ class Syllable(object):
                     sonorities[i] = None
             sonorities = [x for x in sonorities if x]
 
-        #return the number of ns in the list
-        return len([x for x in sonorities if x == maximum_sonority])
+        #return ns in the list
+        return [x for x in sonorities if x == maximum_sonority]
+
+    def count_nuclei(self):
+        """
+        Returns an estimated number of nuclei in this syllable.
+        If the value is greater than 1, something is likely wrong, e.g. the source
+        has been incorrectly syllabified. If it is less than 1 either something 
+        is wrong, or you are in the PNW.
+        """
+        return len(self.find_nuclei())
     
     def get_structure(self):
         nuclei_num = self.count_nuclei()
@@ -139,20 +148,29 @@ class Syllable(object):
                 elif n and c and ph.is_vowel():
                     raise Exception("Vowel {} found in coda of {}".format(ph,self))
         else:
-            #TODO idk
-            pass
+            nc = self.find_nuclei()[0]
+            nucleus.append(nc)
+            ncidx = self.phonemes.index(nc)
+            onset = self.phonemes[:ncidx]
+            coda = self.phonemes[ncidx:]
+            
         return([onset,nucleus,coda])
                     
     def get_onset(self):
         return self.get_structure()[0]
+
     def get_nucleus(self):
         return self.get_structure()[1]
+
     def get_coda(self):
         return self.get_structure()[2]
     
     def get_rime(self):
         return self.get_nucleus() + self.get_coda()
-        
+
+    def has_onset(self):
+        return True if self.get_onset() else False
+    
     def is_open(self):
         if not self.get_coda():
             return True
@@ -179,6 +197,9 @@ class Syllable(object):
         if len(self.get_coda()) > 1:
             clusdict["coda"] = self.get_coda()
         return clusdict
+
+    def get_max_cluster_length(self):
+        return max([len(v) for v in self.get_clusters().values()])
         
     def has_polyphthong(self):
         if len(get_nucleus()) > 1:
@@ -190,12 +211,19 @@ class Syllable(object):
         if self.has_polyphthong:
             return self.get_nucleus()
         else:
-            raise Exception("Syllable {} contains no polyphthong".format(self))
+            raise ValueError("Syllable {} contains no polyphthong".format(self))
 
 class Word(object):
     def __init__(self,syllables):
         self.syllables = syllables
         self.phonemes = [syl.phonemes for syl in self.syllables]
+        if len(self.syllables) > 1:
+            self.syllables[0].set_word_position("initial")
+            for syl in self.syllables[1:-1]:
+                syl.set_word_position("medial")
+            self.syllables[-1].set_word_position("final")
+        else:
+             self.syllables[0].set_word_position("monosyllable")
         
     def __repr__(self):
         word_repr = "/"
@@ -223,59 +251,127 @@ class WordFactory(object):
     def __init__(self,phonology):
         self.phonology = phonology
         self.phoneme_dict = self.phonology.get_phoneme_dictionary()
+
+    def mostlikely(self, lss, weight=None):
+
+        def default(syllable):
+            wt = 0.0
+            try:
+                if syllable.has_onset():
+                    wt += 0.5
+                    if syllable.is_open():
+                        wt += 0.3
+                elif syllable.is_closed():
+                    wt += 0.2
+                if not syllable.has_clusters():
+                    wt += 0.5
+                elif syllable.get_max_cluster_length() == 2:
+                    wt += 0.3
+                return wt
+            except Exception as e:
+                return -1.0
+
+        if weight is None:
+            weight = default
+
+        candidates = map(lambda xs: list(map(self.make_syllable, xs)), lss)
+        return max([(c, sum(map(weight, c))) for c in candidates],
+                   key = lambda b: b[1])[0]
         
+    def fromlist(self, seglist):
         
-    def make_word(self,raw_word):
+        def breakat(ls, breaks):
+            slices = []
+            lastbrk = 0
+            for brk in breaks:
+                slices.append(ls[lastbrk:brk])
+                lastbrk = brk
+            slices.append(ls[lastbrk:])
+            return slices
+
+        def powerset(iterable):
+            s = list(iterable)
+            return itertools.chain.from_iterable(
+                itertools.combinations(s, r) for r in range(len(s)+1))
+
+        syls = []
+        for breaks in powerset(range(1, len(seglist))):
+            syls.append(breakat(seglist, breaks))
+
+        return Word(self.mostlikely(syls))
+    
+
+    def make_syllable(self, segs):
+        proto_syl = []
+        stressed = False
+        if "'" in segs:
+            if segs[0] == "'":
+                stressed = True
+                segs = segs[1:]
+            else:
+                return None
+        for ipa_seg in segs:
+            proto_syl += [self.phoneme_dict[ipa_seg]]
+        syl = Syllable(proto_syl)
+        if stressed:
+            syl.is_stressed()
+        return syl
+            
+
+    def make_word(self, raw_word):
         #turn ' into .' to allow splitting into syllables
+        #what about ˌ ?
         raw_word = raw_word.replace("'",".'")
         raw_syllables = [syl for syl in raw_word.split(".") if syl]
         syllables = []
-        for i, rs in enumerate(raw_syllables):
+        for rs in raw_syllables:
             syl = []
             stressed = False
-            
+
             #if there is a "'", this syllable has stress
             if rs[0] == "'":
                 stressed = True
-            
-            if i == 0:
-                word_position = "initial"
-            elif i == len(raw_syllables)-1:
-                word_position = "final"
-            else:
-                word_position = "medial"
-            
-            if len(raw_syllables) == 1:
-                word_position = "monosyllable"
-                
+
             #TODO identify diacritics
             proto_syl = []
-            
+
             if stressed:
                 proto_rs = rs[1:]
             else:
                 proto_rs = rs
-            
+
             for ipa_char in proto_rs:
                 proto_syl += [self.phoneme_dict[ipa_char]]
             syl = Syllable(proto_syl)
             if stressed:
                 syl.is_stressed()
-            
-            syl.set_word_position(word_position)
+
             syllables += [syl]
-        
-        
+
         word = Word(syllables)
         return word
 
 ################################################################################
 
+def test():
+    
+    #example phonology
+    phonemes = ["p","t","k",
+                "b","d","ɡ",
+                "m","n",
+                "s","f",
+                "w","j","r","l",
+                "a","e","i","o","u"]
+    phonology = Phonology(phonemes)
+
+    return WordFactory(phonology)
+
+
 if __name__ == '__main__':
 
     #example phonology
     phonemes = ["p","t","k",
-                "b","d","g",
+                "b","d","ɡ",
                 "m","n",
                 "s","f",
                 "w","j",
@@ -285,8 +381,11 @@ if __name__ == '__main__':
 
     wf = WordFactory(phonology)
     
-    raw_words = ["a'ma.re","'ka.sa","'ar.bo.re","et","ak'tjo.ne"]
-    words = []
-    for word in raw_words:
-        words += [wf.make_word(word)]
-    print(words)
+    #raw_words = ["a'ma.re","'ka.sa","'ar.bo.re","et","ak'tjo.ne"]
+    #words = []
+    #for word in raw_words:
+    #    words += [wf.make_word(word)]
+    #print(words)
+
+    raw_words = ["amare", "banana", "aktjone", "ndela", "adam", "erajnd"]
+    print(list(map(wf.fromlist, raw_words)))
