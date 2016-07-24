@@ -1,5 +1,6 @@
-from phone import MonoPhone
-from phonology import Phonology
+from .phone import MonoPhone
+from .phonology import Phonology
+from .utils import breakat, powerset
 import itertools
 import sys
 
@@ -258,15 +259,19 @@ class WordFactory(object):
             wt = 0.0
             try:
                 if syllable.has_onset():
-                    wt += 0.5
-                    if syllable.is_open():
-                        wt += 0.3
+                    wt += 0.6
+                    if not syllable.is_open():
+                        wt += 0.1
                 elif syllable.is_closed():
-                    wt += 0.2
+                    wt += 0.1
                 if not syllable.has_clusters():
-                    wt += 0.5
-                elif syllable.get_max_cluster_length() == 2:
-                    wt += 0.3
+                    wt += 0.7
+                else:
+                    if syllable.get_max_cluster_length() == 2:
+                        wt += 0.3
+                    if syllable.is_open():
+                        wt += 0.2
+                        
                 return wt
             except Exception as e:
                 return -1.0
@@ -278,34 +283,20 @@ class WordFactory(object):
         return max([(c, sum(map(weight, c))) for c in candidates],
                    key = lambda b: b[1])[0]
         
-    def fromlist(self, seglist):
-        
-        def breakat(ls, breaks):
-            slices = []
-            lastbrk = 0
-            for brk in breaks:
-                slices.append(ls[lastbrk:brk])
-                lastbrk = brk
-            slices.append(ls[lastbrk:])
-            return slices
-
-        def powerset(iterable):
-            s = list(iterable)
-            return itertools.chain.from_iterable(
-                itertools.combinations(s, r) for r in range(len(s)+1))
+    def fromlist(self, seglist, weight=None):
 
         syls = []
         for breaks in powerset(range(1, len(seglist))):
             syls.append(breakat(seglist, breaks))
 
-        return Word(self.mostlikely(syls))
+        return Word(self.mostlikely(syls, weight))
     
 
     def make_syllable(self, segs):
         proto_syl = []
         stressed = False
-        if "'" in segs:
-            if segs[0] == "'":
+        if 'ˈ' in segs:
+            if segs[0] == 'ˈ':
                 stressed = True
                 segs = segs[1:]
             else:
@@ -367,8 +358,7 @@ def test():
     return WordFactory(phonology)
 
 
-if __name__ == '__main__':
-
+def main():
     #example phonology
     phonemes = ["p","t","k",
                 "b","d","ɡ",
@@ -389,3 +379,6 @@ if __name__ == '__main__':
 
     raw_words = ["amare", "banana", "aktjone", "ndela", "adam", "erajnd"]
     print(list(map(wf.fromlist, raw_words)))
+
+if __name__ == '__main__':
+    main()

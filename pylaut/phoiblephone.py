@@ -1,4 +1,5 @@
-from phone import Phone
+from .phone import Phone
+from os import path
 
 class PhoiblePhone(Phone):
     """
@@ -22,41 +23,6 @@ class PhoiblePhone(Phone):
     _NAS_C_FEATURE = "nasal"
 
     _SYL_FEATURE = "syllabic"
-    
-    def load_set_feature_set(self,feature_set_file_name):
-        """
-        Loads a feature set from file, sets the Phone's feature set to it and 
-        reinits self.features /!\ clearing any existing features /!\
-        
-        A feature set file is a plain text file, with the name of the feature set
-        on the first line, with features given in []s each on its separate line
-        """
-        feature_set_raw = open(feature_set_file_name,"r").read().splitlines()
-        feature_set_name = feature_set_raw[0]
-        if feature_set_raw[1]:
-            if feature_set_raw[1]:
-                Phone._FEATURE_SET_IPA_LOOKUP = True
-                feature_set_ipa_filename = feature_set_raw[1]
-        feature_set = [line[1:-1] for line in feature_set_raw if line and
-                       line[0] == "[" and line[-1] == "]" ]
-        
-        #assign properties
-        self.feature_set_name = feature_set_name
-        self.feature_set = feature_set
-        self.features = {x: None for x in self.feature_set}
-        #does the feature set specify ipa lookup?
-        if Phone._FEATURE_SET_IPA_LOOKUP and not Phone._feature_set_ipa_dict:
-            try:
-                feature_set_ipa_vals_file = open(feature_set_ipa_filename,"r")
-                feature_set_ipa_vals_raw = feature_set_ipa_vals_file.read().splitlines()
-                feature_set_ipa_vals_file.close()
-            except IOError:
-                raise Exception("Invalid IPA lookup file!")
-            for line in feature_set_ipa_vals_raw[1:]:
-                if line:
-                    feature_set_ipa_val = line.split()
-                    feats = [features for features in feature_set_ipa_val[1:len(feature_set_ipa_val)]]
-                    Phone._feature_set_ipa_dict[feature_set_ipa_val[0]] = feats
 
     def get_ipa_from_features(self):
         """
@@ -65,8 +31,8 @@ class PhoiblePhone(Phone):
         """
         matching_symbols = list()
         our_feature_list = self.get_feature_list()
-        for ipa_char in Phone._feature_set_ipa_dict:
-            if Phone._feature_set_ipa_dict[ipa_char] == our_feature_list:
+        for ipa_char in self._feature_set_ipa_dict:
+            if self._feature_set_ipa_dict[ipa_char] == our_feature_list:
                 matching_symbols += [ipa_char]
         
         if len(matching_symbols) < 1:
@@ -79,24 +45,54 @@ class PhoiblePhone(Phone):
         Takes Unicode IPA symbol (optionally with diacritics) and automagically assigns appropriate featural 
         values to Phone
         """
-        ipa_char_features = Phone._feature_set_ipa_dict[ipa_str]
-        
+
+        def flookup(self, ipa_str):
+
+            if len(ipa_str) == 0:
+                return
+
+            if (ipa_str not in self._feature_set_ipa_dict and
+                ipa_str[-1] in self._feature_set_ipa_diacritics):
+                flookup(self, ipa_str[:-1])
+                try:
+                    char = ipa_str[-1]
+                    for featstr in self._feature_set_ipa_diacritics[char]:
+                        dc_feat = featstr[1:]
+                        dc_val =  featstr[0]
+
+                        if dc_val == Phone._TRUE_FEATURE:
+                            self.set_features_true(dc_feat)
+                        elif dc_val == Phone._FALSE_FEATURE:
+                            self.set_features_false(dc_feat)
+                        else:
+                            self.seat_features_null(dc_feat)
+
+                except KeyError:
+                    raise KeyError(" {}  not found in IPA lookup.".format(char))
+
+            else:
+
+                ipa_char_features = self._feature_set_ipa_dict[ipa_str]
+
+                for ipa_feat, our_feat in zip(ipa_char_features,
+                                              self.feature_set):
+                    if ipa_feat == Phone._TRUE_FEATURE:
+                        self.set_features_true(our_feat)
+                    elif ipa_feat == Phone._FALSE_FEATURE:
+                        self.set_features_false(our_feat)
+                    else:
+                        self.set_features_null(our_feat)
+
         #clear the features dict to prepare for the IPA data [which should be
         #complete + contain a value for all features]
         self.clear_features()
-    
-        for ipa_feat, our_feat in zip(ipa_char_features, self.feature_set):
-            if ipa_feat == Phone._TRUE_FEATURE:
-                self.set_features_true(our_feat)
-            elif ipa_feat == Phone._FALSE_FEATURE:
-                self.set_features_false(our_feat)
-            else:
-                self.set_features_null(our_feat)
 
+        flookup(self, ipa_str)
+        
     #vowel properties
     def is_vowel(self):
-        if self.feature_is(PhoiblePhone._CONSONANTAL_FEATURE,
-                           PhoiblePhone._FALSE_FEATURE):
+        if self.feature_is(PhoiblePhone._SYL_FEATURE,
+                           PhoiblePhone._TRUE_FEATURE):
             return True
         else:
             return False
@@ -153,8 +149,8 @@ class PhoiblePhone(Phone):
     #consonant properties
                   
     def is_consonant(self):
-        if self.feature_is(PhoiblePhone._CONSONANTAL_FEATURE,
-                           PhoiblePhone._TRUE_FEATURE):
+        if self.feature_is(PhoiblePhone._SYL_FEATURE,
+                           PhoiblePhone._FALSE_FEATURE):
             return True
         else:
             return False
@@ -256,7 +252,51 @@ class PhoiblePhone(Phone):
         super().__init__()
         self.JSON_OBJECT_NAME = "Phone/PhoiblePhone"
         self.JSON_VERSION_NO = "PhoiblePhone-pre-alpha-1"
-        self.load_set_feature_set(PhoiblePhone._FEATURE_SET_NAME)
+        self.load_set_feature_set(self.feature_set_filename())
         if ipa_string:
             self.set_features_from_ipa(ipa_string)
             self.symbol = ipa_string
+
+
+class PhoiblePhoneme(PhoiblePhone):
+    """
+    Wrapper/decorator for Phones, containing extra information.
+    """
+    def __init__(self,ipa_string=None):
+        super().__init__(ipa_string)
+        self.subsystem = dict()
+        
+        self.JSON_OBJECT_NAME = "PhoiblePhoneme"
+        self.JSON_VERSION_NO = "pre-alpha-1"
+
+    def __repr__(self):
+        """
+        The representation of a phoneme is the IPA symbol in slashes
+        """
+        return "/" + self.symbol + "/"
+            
+    def is_in_vowel_subsystem(self,subsystem):
+        """
+        Returns True if the Phoneme is in a vowel subsystem 'subsystem' 
+        """
+        if not self.is_vowel():
+            raise Exception("{} is not a vowel, so cannot be in a vowel "
+                            "subsystem '{}'.".format(self.symbol,subsystem))
+        if subsystem in self.subsystem:
+            return True
+        else:
+            return False
+    
+    def value_in_vowel_subsystem(self,subsystem):
+        """
+        If a Phoneme is in a vowel subsystem, returns the value (+-) of that Phoneme 
+        in the subsystem
+        """
+        if not self.is_in_subsystem(subsystem):
+            raise Exception("{} is not in subsystem "
+                            "{}.".format(self.symbol,subsystem))
+        else:
+            return self.subsystem[subsystem]
+
+    def copy(self):
+            return deepcopy(self)

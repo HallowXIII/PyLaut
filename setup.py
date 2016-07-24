@@ -46,10 +46,9 @@ setup(
 
     # If there are data files included in your packages that need to be
     # have to be included in MANIFEST.in as well.
-    package_data={
-        'monophone': ['monophone', 'monophone_ipa',
-                      'monophone_ipa_diacritics'],
-        'phoiblephone': ['phoible-segf', 'phoible-segf_ipa']
+    package_data={'pylaut': ['data/monophone', 'data/monophone_ipa',
+                             'data/monophone_ipa_diacritics',
+                             'data/phoible-segf', 'data/phoible-segf_ipa']
     }
 
 )

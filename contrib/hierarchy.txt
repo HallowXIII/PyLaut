@@ -1,0 +1,2 @@
+voiced > voiceless
+nasal > stop > liquid > fricative

@@ -1,4 +1,4 @@
-from phone import MonoPhone
+from pylaut.phone import MonoPhone
 import json
 from copy import deepcopy
 
@@ -59,7 +59,6 @@ class Phoneme(MonoPhone):
         else:
             return False
     
-    
     def value_in_vowel_subsystem(self,subsystem):
         """
         If a Phoneme is in a vowel subsystem, returns the value (+-) of that Phoneme 
@@ -74,6 +73,7 @@ class Phoneme(MonoPhone):
     def copy(self):
             return deepcopy(self)
           
+
 class Phonology(object):
     """
     Refer to comments for inchoate comments.
@@ -100,7 +100,7 @@ class Phonology(object):
         """
         if isinstance(o,set):
             return list(o)
-        if isinstance(o,Phoneme):
+        if isinstance(o,self.phoneme_cls):
             return o.to_json()
             
     def to_json(self):
@@ -169,13 +169,11 @@ class Phonology(object):
         """
         return {ph for ph in self.phonemes if ph.is_vowel()}
         
-        
     def get_consonants(self):
         """
         Gets the subset of self.phonemes which are consonants
         """
         return {ph for ph in self.phonemes if ph.is_consonant()}
-    
     
     def get_phoneme(self,ipa_str):
         """

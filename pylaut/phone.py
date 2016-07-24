@@ -1,5 +1,9 @@
 from pprint import pprint
 import json
+import sys
+from os import path
+
+import pylaut.utils as utils
 
 class Phone(object):
     """
@@ -46,6 +50,15 @@ class Phone(object):
         The representation of a phone is the IPA symbol in square brackets
         """
         return "[" + self.symbol + "]"    
+
+    def feature_set_filename(self, dirname=None):
+        if dirname is None:
+            here = path.join(path.abspath(path.dirname(__file__)), 'data/')
+        else:
+            here = dirname
+        return path.join(here, self._FEATURE_SET_NAME)
+        
+        
     
     def to_json(self):
         """
@@ -101,9 +114,10 @@ class Phone(object):
         feature_set_name = feature_set_raw[0]
         if feature_set_raw[1]:
             if feature_set_raw[1] and feature_set_raw[2] != "0":
+                here = path.abspath(path.dirname(feature_set_file_name))
                 Phone._FEATURE_SET_IPA_LOOKUP = True
-                feature_set_ipa_filename = feature_set_raw[1]
-                feature_set_diacritics_filename = feature_set_raw[2]
+                feature_set_ipa_filename = path.join(here, feature_set_raw[1])
+                feature_set_diacritics_filename = path.join(here, feature_set_raw[2])
         feature_set = [line for line in feature_set_raw if line and 
                        line[0] == "[" and line[-1] == "]" ]
         feature_set = [line[1:-1] for line in feature_set]
@@ -130,15 +144,17 @@ class Phone(object):
                     feature_set_ipa_dcs_file = open(feature_set_diacritics_filename,"r")
                     feature_set_ipa_dcs_raw = feature_set_ipa_dcs_file.read().splitlines()
                     feature_set_ipa_dcs_file.close()
-                except IOError:
-                    raise Exception("Invalid IPA Diacritic lookup file!")
+                except IOError as e:
+                    raise Exception("Invalid IPA Diacritic lookup file! "
+                                    "{}".format(e))
             for line in feature_set_ipa_dcs_raw[1:]:
                 if line:
                     feature_set_ipa_dc = line.split()
                 #this is a more natural notation for a feature
                 #also the notation that get_ipa_from_features uses
-                    d_feat = "".join(feature_set_ipa_dc[:0:-1])
-                    Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = d_feat
+                    Phone._feature_set_ipa_diacritics[
+                        feature_set_ipa_dc[0]] = frozenset(
+                            feature_set_ipa_dc[1:])
                 #Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = tuple([item for item in feature_set_ipa_dc[1:]])
 
 
@@ -225,16 +241,18 @@ class Phone(object):
         if len(ipa_str) > 1:
             for char in ipa_str[1:]:
                 try:
-                    dc_feat = Phone._feature_set_ipa_diacritics[char][1:]
-                    dc_val = Phone._feature_set_ipa_diacritics[char][0]
+                    dc_feats = Phone._feature_set_ipa_diacritics[char]
+                    for feat in dc_feats:
+                        dc_feat = feat[1:]
+                        dc_val = feat[0]
+                        if dc_val == Phone._TRUE_FEATURE:
+                            self.set_features_true(dc_feat)
+                        elif dc_val == Phone._FALSE_FEATURE:
+                            self.set_features_false(dc_feat)
+                        else:
+                            self.seat_features_null(dc_feat)
                 except KeyError:
                     raise KeyError(" {}  not found in IPA lookup.".format(char))
-                if dc_val == Phone._TRUE_FEATURE:
-                    self.set_features_true(dc_feat)
-                elif dc_val == Phone._FALSE_FEATURE:
-                    self.set_features_false(dc_feat)
-                else:
-                    self.seat_features_null(dc_feat)
                 
 
     def feature_hamming(self,feature_list,ipa_feature_list):
@@ -391,14 +409,25 @@ class Phone(object):
                 #every feature in the first-round candidates is checked to see if
                 #there is a diacritic, if there is we note what the diacritic is,
                 #otherwise we leave an ominous blank
-                purged_diffs = [reverse_diacritics[diff] if
-                                diff in reverse_diacritics else
-                                None for diff in diffs]
-                if None in purged_diffs:
-                    pass
-                else:
-                    #we store the second-round candidate base glyph with diacritics 
-                    valid += [(candidate_base,purged_diffs)]
+                #purged_diffs = [reverse_diacritics[tuple(db)] if
+                #                tuple(db) in reverse_diacritics else
+                #                None for db in utils.breakat(
+                #                    diffs, utils.powerset(range(
+                #                        1, len(diffs))))]
+
+                for brk in utils.powerset(range(1, len(diffs))):
+                    purged_diffs = list()
+                    for db in utils.breakat(diffs, brk):
+                        try:
+                            purged_diffs.append(reverse_diacritics[frozenset(db)])
+                        except KeyError:
+                            purged_diffs.append(None)
+
+                    if None in purged_diffs:
+                        pass
+                    else:
+                        #we store the second-round candidate base glyph with diacritics 
+                        valid += [(candidate_base, purged_diffs)]
 
         #TODO: identify the lowest-indexed solutions thus left
         #      if it is unique, use that, otherwise I D K
@@ -601,7 +630,7 @@ class MonoPhone(Phone):
         super().__init__()
         self.JSON_OBJECT_NAME = "Phone/MonoPhone"
         self.JSON_VERSION_NO = "MonoPhone-pre-alpha-1"
-        self.load_set_feature_set(MonoPhone._FEATURE_SET_NAME)
+        self.load_set_feature_set(self.feature_set_filename())
         if ipa_string:
             self.set_features_from_ipa(ipa_string)
             self.set_symbol_from_features()
