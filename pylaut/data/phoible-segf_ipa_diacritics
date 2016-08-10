@@ -31,7 +31,7 @@
 ̤ +spreadGlottis -constrictedGlottis
 ʼ -spreadGlottis +constrictedGlottis +raisedLarynxEjective
 ̩ +syllabic
-ⁿ -,+nasal
+ⁿ +nasal
 ͇ -strident
 ̊ -periodicGlottalSource +spreadGlottis -constrictedGlottis
 ̠ -anterior +distributed

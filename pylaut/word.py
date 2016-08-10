@@ -9,6 +9,13 @@ class Syllable(object):
         self.phonemes = phonemes
         self.stressed = False
         self.word_position = None
+        self.structure = None
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
+    def __hash__(self):
+        return self.__repr__().__hash__()
 
     def to_json(self):
         pass
@@ -78,15 +85,16 @@ class Syllable(object):
         Finds all possible nuclei in the syllable. So far, has problems
         dealing with things that aren't easy and unambiguous.
         """
-        sonorities = [ph.get_sonority() for ph in self.phonemes]
+        sonorities = [(ph,ph.get_sonority()) for ph in self.phonemes]
         #check to see if there are phones w/ sonorities >= 10        
-        if max(sonorities) >= 10:
+        if max(sonorities, key=lambda x: x[1])[1] >= 10:
             maximum_sonority = 10
         #reduce all vowels to level 10, n := 10
-            sonorities = [10 if s > 10 else s for s in sonorities]
+            sonorities = [(s[0],10) if s[1] > 10
+                          else s for s in sonorities]
         #if there are none, check for sonorities >= 5 and use max as n
-        elif max(sonorities) >= 5:
-            maximum_sonority = max(sonorities)
+        elif max(sonorities, key=lambda x: x[1])[1] >= 5:
+            maximum_sonority = max(sonorities, key=lambda x: x[1])[1]
         #if there are neither, return 0
         else:
             return []
@@ -95,12 +103,12 @@ class Syllable(object):
         #TODO: fun fact: len(a) is too big, and a smaller value will work. find it
         for m in range(len(sonorities)):
             for i, n in enumerate(sonorities):
-                if i > 0 and sonorities[i-1] == n:
+                if i > 0 and sonorities[i-1][1] == n[1]:
                     sonorities[i] = None
             sonorities = [x for x in sonorities if x]
 
         #return ns in the list
-        return [x for x in sonorities if x == maximum_sonority]
+        return [x[0] for x in sonorities if x[1] == maximum_sonority]
 
     def count_nuclei(self):
         """
@@ -112,50 +120,55 @@ class Syllable(object):
         return len(self.find_nuclei())
     
     def get_structure(self):
-        nuclei_num = self.count_nuclei()
-        if nuclei_num < 1:
-            raise Exception("Syllable {} has no nucleus!".format(self))
-        elif nuclei_num > 1:
-            raise Exception("Syllable {} has {} nuclei!".format(self,nuclei_num))
+        if self.structure is not None:
+            return self.structure
         else:
-            pass
-        
-        sonorities = [ph.get_sonority() for ph in self.phonemes]
-        
-        onset, nucleus, coda = [], [], []
-        if self.contains_vowel(): #the job is easier!
-            n,c = False,False
-            for i, ph in enumerate(self.phonemes):
-                #we haven't triggered either nucleus or coda bit + is C
-                if not n and not c and ph.is_consonant():
-                    onset += [ph]
-                #we haven't triggered either nucleus or coda bit + is V
-                elif not n and not c and ph.is_vowel():
-                    n = True
-                    nucleus += [ph]
-                #we HAVE triggered nucleus but not coda bit + is V
-                elif n and not c and ph.is_vowel():
-                    nucleus += [ph]
-                #we HAVE triggered nucleus but not coda bit + is V
-                elif n and not c and ph.is_consonant():
-                    c = True
-                    coda += [ph]
-                #nucleus and coda bit both triggered, all consonants now go in
-                #coda
-                elif n and c and ph.is_consonant():
-                    coda += [ph]
-                #this would mean multiple nuclei + the first part of this is
-                #supposed to check for this!
-                elif n and c and ph.is_vowel():
-                    raise Exception("Vowel {} found in coda of {}".format(ph,self))
-        else:
-            nc = self.find_nuclei()[0]
-            nucleus.append(nc)
-            ncidx = self.phonemes.index(nc)
-            onset = self.phonemes[:ncidx]
-            coda = self.phonemes[ncidx:]
+            nuclei_num = self.count_nuclei()
+            if nuclei_num < 1:
+                raise Exception("Syllable {} has no nucleus!".format(self))
+            elif nuclei_num > 1:
+                raise Exception("Syllable {} has {} nuclei!".format(self,nuclei_num))
+            else:
+                pass
+
+            sonorities = [ph.get_sonority() for ph in self.phonemes]
+
+            onset, nucleus, coda = [], [], []
+            if self.contains_vowel(): #the job is easier!
+                n,c = False,False
+                for i, ph in enumerate(self.phonemes):
+                    #we haven't triggered either nucleus or coda bit + is C
+                    if not n and not c and ph.is_consonant():
+                        onset += [ph]
+                    #we haven't triggered either nucleus or coda bit + is V
+                    elif not n and not c and ph.is_vowel():
+                        n = True
+                        nucleus += [ph]
+                    #we HAVE triggered nucleus but not coda bit + is V
+                    elif n and not c and ph.is_vowel():
+                        nucleus += [ph]
+                    #we HAVE triggered nucleus but not coda bit + is V
+                    elif n and not c and ph.is_consonant():
+                        c = True
+                        coda += [ph]
+                    #nucleus and coda bit both triggered, all consonants now go in
+                    #coda
+                    elif n and c and ph.is_consonant():
+                        coda += [ph]
+                    #this would mean multiple nuclei + the first part of this is
+                    #supposed to check for this!
+                    elif n and c and ph.is_vowel():
+                        raise Exception("Vowel {} found in coda of {}".format(ph,self))
+            else:
+                nc = self.find_nuclei()[0]
+                nucleus.append(nc)
+                ncidx = self.phonemes.index(nc)
+                onset = self.phonemes[:ncidx]
+                coda = self.phonemes[ncidx:]
+
             
-        return([onset,nucleus,coda])
+            self.structure = [onset,nucleus,coda]
+            return self.structure
                     
     def get_onset(self):
         return self.get_structure()[0]
@@ -253,7 +266,7 @@ class WordFactory(object):
         self.phonology = phonology
         self.phoneme_dict = self.phonology.get_phoneme_dictionary()
 
-    def mostlikely(self, lss, weight=None):
+    def mostlikely(self, lss, weightf=None):
 
         def default(syllable):
             wt = 0.0
@@ -276,8 +289,14 @@ class WordFactory(object):
             except Exception as e:
                 return -1.0
 
-        if weight is None:
-            weight = default
+        if weightf is None:
+            weightf = default
+
+        memo = {}
+        def weight(syl):
+            if syl not in memo:
+                memo[syl] = weightf(syl)
+            return memo[syl]
 
         candidates = map(lambda xs: list(map(self.make_syllable, xs)), lss)
         return max([(c, sum(map(weight, c))) for c in candidates],
