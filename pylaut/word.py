@@ -1,10 +1,11 @@
-from .phone import MonoPhone
-from .phonology import Phonology
-from .utils import breakat, powerset
+from pylaut.phone import MonoPhone
+from pylaut.phonology import Phonology
+from pylaut.utils import breakat, powerset
 import itertools
 import sys
 
 class Syllable(object):
+
     def __init__(self,phonemes):
         self.phonemes = phonemes
         self.stressed = False
@@ -16,6 +17,10 @@ class Syllable(object):
 
     def __hash__(self):
         return self.__repr__().__hash__()
+
+    def __iter__(self):
+        for ph in self.phonemes:
+            yield ph
 
     def to_json(self):
         pass
@@ -35,9 +40,12 @@ class Syllable(object):
         return "".join(output)
     
     def is_stressed(self):
-        self.stressed = True
+        return self.stressed
         
-    def is_unstressed(self):
+    def set_stressed(self):
+        self.stressed = True
+    
+    def set_unstressed(self):
         self.stressed = False
         
     def set_word_position(self,position):
@@ -83,7 +91,7 @@ class Syllable(object):
     def find_nuclei(self):
         """
         Finds all possible nuclei in the syllable. So far, has problems
-        dealing with things that aren't easy and unambiguous.
+        dealing with things that aren"t easy and unambiguous.
         """
         sonorities = [(ph,ph.get_sonority()) for ph in self.phonemes]
         #check to see if there are phones w/ sonorities >= 10        
@@ -137,10 +145,10 @@ class Syllable(object):
             if self.contains_vowel(): #the job is easier!
                 n,c = False,False
                 for i, ph in enumerate(self.phonemes):
-                    #we haven't triggered either nucleus or coda bit + is C
+                    #we haven"t triggered either nucleus or coda bit + is C
                     if not n and not c and ph.is_consonant():
                         onset += [ph]
-                    #we haven't triggered either nucleus or coda bit + is V
+                    #we haven"t triggered either nucleus or coda bit + is V
                     elif not n and not c and ph.is_vowel():
                         n = True
                         nucleus += [ph]
@@ -166,8 +174,7 @@ class Syllable(object):
                 onset = self.phonemes[:ncidx]
                 coda = self.phonemes[ncidx:]
 
-            
-            self.structure = [onset,nucleus,coda]
+            self.structure = (onset,nucleus,coda)
             return self.structure
                     
     def get_onset(self):
@@ -227,6 +234,24 @@ class Syllable(object):
         else:
             raise ValueError("Syllable {} contains no polyphthong".format(self))
 
+    def get_pattern(self):
+        ptn = []
+        onset, nucleus, coda = self.get_structure()
+        for c in onset:
+            ptn.append("C")
+        for n in nucleus:
+            if n.is_vowel():
+                ptn.append("V")
+            elif n.is_nasal_stop():
+                ptn.append("N")
+            else:
+                ptn.append("R")
+        for c in coda:
+            ptn.append("C")
+
+        return "".join(ptn)
+                
+
 class Word(object):
     def __init__(self,syllables):
         self.syllables = syllables
@@ -253,13 +278,17 @@ class Word(object):
         
         return word_repr
 
+    def __iter__(self):
+        for syl in self.syllables:
+            yield syl
+
 
         
 class WordFactory(object):
     """
     Makes Words.
     Needs to be initialised with a Phonology.
-    make_words takes an IPA string, syllables delimited with <.> or <'> if stressed 
+    make_words takes an IPA string, syllables delimited with <.> or <"> if stressed 
     and outputs a Word, composed of Syllables.
     """
     def __init__(self,phonology):
@@ -314,22 +343,22 @@ class WordFactory(object):
     def make_syllable(self, segs):
         proto_syl = []
         stressed = False
-        if 'ˈ' in segs:
-            if segs[0] == 'ˈ':
+        if "ˈ" in segs:
+            if segs[0] == "ˈ":
                 stressed = True
                 segs = segs[1:]
             else:
                 return None
         for ipa_seg in segs:
-            proto_syl += [self.phoneme_dict[ipa_seg]]
+            proto_syl += [self.phoneme_dict[ipa_seg].copy()]
         syl = Syllable(proto_syl)
         if stressed:
-            syl.is_stressed()
+            syl.set_stressed()
         return syl
             
 
     def make_word(self, raw_word):
-        #turn ' into .' to allow splitting into syllables
+        #turn " into ." to allow splitting into syllables
         #what about ˌ ?
         raw_word = raw_word.replace("'",".'")
         raw_syllables = [syl for syl in raw_word.split(".") if syl]
@@ -338,7 +367,7 @@ class WordFactory(object):
             syl = []
             stressed = False
 
-            #if there is a "'", this syllable has stress
+            #if there is a """, this syllable has stress
             if rs[0] == "'":
                 stressed = True
 
@@ -351,10 +380,10 @@ class WordFactory(object):
                 proto_rs = rs
 
             for ipa_char in proto_rs:
-                proto_syl += [self.phoneme_dict[ipa_char]]
+                proto_syl += [self.phoneme_dict[ipa_char].copy()]
             syl = Syllable(proto_syl)
             if stressed:
-                syl.is_stressed()
+                syl.set_stressed()
 
             syllables += [syl]
 
@@ -390,7 +419,7 @@ def main():
 
     wf = WordFactory(phonology)
     
-    #raw_words = ["a'ma.re","'ka.sa","'ar.bo.re","et","ak'tjo.ne"]
+    #raw_words = ["a"ma.re",""ka.sa",""ar.bo.re","et","ak"tjo.ne"]
     #words = []
     #for word in raw_words:
     #    words += [wf.make_word(word)]
@@ -399,5 +428,5 @@ def main():
     raw_words = ["amare", "banana", "aktjone", "ndela", "adam", "erajnd"]
     print(list(map(wf.fromlist, raw_words)))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

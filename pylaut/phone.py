@@ -57,8 +57,6 @@ class Phone(object):
         else:
             here = dirname
         return path.join(here, self._FEATURE_SET_NAME)
-        
-        
     
     def to_json(self):
         """
@@ -100,7 +98,6 @@ class Phone(object):
                 pass
                 
         return output
-    
     
     def load_set_feature_set(self,feature_set_file_name):
         """
@@ -157,13 +154,11 @@ class Phone(object):
                             feature_set_ipa_dc[1:])
                 #Phone._feature_set_ipa_diacritics[feature_set_ipa_dc[0]] = tuple([item for item in feature_set_ipa_dc[1:]])
 
-
     def clear_features(self):
         """
         Clears the entries of self.features.
         """
         self.features = {x: None for x in self.feature_set}
-
 
     def set_feature(self,feature_name,feature_value):
         """
@@ -183,7 +178,6 @@ class Phone(object):
             else:
                 #do it
                 self.features[feature_name] = feature_value
-
 
     def set_features_bool(self,feature_names,hey_boo):
         """
@@ -205,20 +199,18 @@ class Phone(object):
         Sets the feature_name of the Phone to be true/+
         """
         self.set_features_bool(feature_names,Phone._TRUE_FEATURE)
-    
+
     def set_features_false(self,feature_names):
         """
         Sets the feature_name of the Phone to be false/-
         """
         self.set_features_bool(feature_names,Phone._FALSE_FEATURE)
-
     
     def set_features_null(self,feature_names):
         """
         Sets the feature_name of the Phone to be null/0
         """
         self.set_features_bool(feature_names,Phone._NULL_FEATURE)
-
 
     def set_features_from_ipa(self,ipa_str):
         """
@@ -253,7 +245,6 @@ class Phone(object):
                             self.seat_features_null(dc_feat)
                 except KeyError:
                     raise KeyError(" {}  not found in IPA lookup.".format(char))
-                
 
     def feature_hamming(self,feature_list,ipa_feature_list):
         """
@@ -271,7 +262,6 @@ class Phone(object):
                 
         return (distant_symbols,len(distant_symbols))
 
-
     def get_feature_list(self):
         """
         Returns a list of the values of features from self.features, using the 
@@ -281,14 +271,12 @@ class Phone(object):
         for feature in self.feature_set:
             feature_list += [self.features[feature]]
         return feature_list
-
     
     def is_good_feature(self,feature):
         if feature in self.feature_set:
             return True
         else:
             return False
-
                 
     def feature_is(self,feature,hey_boo):
         """
@@ -343,13 +331,11 @@ class Phone(object):
         else:
             return matching_symbols[0]
 
-            
     def set_symbol_from_features(self):
         """
         Sets self.symbol using get_ipa_from_features
         """
         self.symbol = self.get_ipa_from_features()
-
         
     def get_ipa_from_features(self):
         """
@@ -634,6 +620,7 @@ class MonoPhone(Phone):
         if ipa_string:
             self.set_features_from_ipa(ipa_string)
             self.set_symbol_from_features()
+
 
 ################################################################################
 #DEBUGGING

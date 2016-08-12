@@ -1,3 +1,4 @@
+from copy import deepcopy
 import itertools
 
 def breakat(ls, breaks):
@@ -19,3 +20,24 @@ def forall(ls, pred):
 
 def exists(ls, pred):
     return any(map(pred, ls))
+
+def mapwith(pred, fun, ls):
+    return (fun(item) if pred(item) else item for item in ls)
+
+def fand(f, g):
+    return lambda x: f(x) and g(x)
+
+def o(f, g):
+    return lambda x: f(g(x))
+
+def milchreis():
+    return float("Infinity")
+
+def change_feature(phone, name, value):
+    np = deepcopy(phone)
+    if value:
+        np.set_features_true(name)
+    else:
+        np.set_features_false(name)
+    np.set_symbol_from_features()
+    return np
