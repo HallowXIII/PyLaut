@@ -12,3 +12,7 @@ ta.kas
 fhtid
 sip
 pʃi.u
+pʃə.fu
+pʃɯ.ra.ʃu
+siə.pʃə
+pi.kai

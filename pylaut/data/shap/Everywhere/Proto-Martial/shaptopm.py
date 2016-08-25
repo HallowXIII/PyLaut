@@ -85,10 +85,12 @@ def main():
     with open("shap.lex") as sl:
         raw = sl.readlines()
         words = [wf.make_word(w.strip()) for w in raw]
+        new_words = [w.copy() for w in words]
         for change in changes:
-            words = [change.apply(w) for w in words]
+            new_words = [change.apply(w) for w in new_words]
 
     print(words)
+    print(new_words)
                 
 if __name__ == '__main__':
     main()

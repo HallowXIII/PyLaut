@@ -289,6 +289,9 @@ class Word(object):
         for syl in self.syllables:
             yield syl
 
+    def copy(self):
+        return deepcopy(self)
+
 
         
 class WordFactory(object):
