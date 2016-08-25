@@ -1,6 +1,5 @@
 from pylaut.phone import MonoPhone
 import json
-from copy import deepcopy
 
 #what should a phonology store?
 
@@ -70,9 +69,6 @@ class Phoneme(MonoPhone):
         else:
             return self.subsystem[subsystem]
 
-    def copy(self):
-            return deepcopy(self)
-          
 
 class Phonology(object):
     """

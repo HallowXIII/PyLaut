@@ -1,7 +1,8 @@
-from pprint import pprint
 import json
 import sys
+from copy import deepcopy
 from os import path
+from pprint import pprint
 
 import pylaut.utils as utils
 
@@ -431,6 +432,9 @@ class Phone(object):
             return True
         else:
             return False
+
+    def copy(self):
+        return deepcopy(self)
 
 class MonoPhone(Phone):
     """

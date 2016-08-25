@@ -1,4 +1,4 @@
-from .phone import Phone
+from pylaut.phone import Phone
 from os import path
 
 class PhoiblePhone(Phone):
@@ -297,6 +297,3 @@ class PhoiblePhoneme(PhoiblePhone):
                             "{}.".format(self.symbol,subsystem))
         else:
             return self.subsystem[subsystem]
-
-    def copy(self):
-            return deepcopy(self)

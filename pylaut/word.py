@@ -316,7 +316,7 @@ class WordFactory(object):
                         
                 return wt
             except Exception as e:
-                return -1.0
+                return -10.0
 
         if weightf is None:
             weightf = default
@@ -358,7 +358,7 @@ class WordFactory(object):
             
 
     def make_word(self, raw_word):
-        #turn " into ." to allow splitting into syllables
+        #turn ' into .' to allow splitting into syllables
         #what about ˌ ?
         raw_word = raw_word.replace("'",".'")
         raw_syllables = [syl for syl in raw_word.split(".") if syl]
@@ -367,7 +367,7 @@ class WordFactory(object):
             syl = []
             stressed = False
 
-            #if there is a """, this syllable has stress
+            #if there is a "'", this syllable has stress
             if rs[0] == "'":
                 stressed = True
 
@@ -419,7 +419,7 @@ def main():
 
     wf = WordFactory(phonology)
     
-    #raw_words = ["a"ma.re",""ka.sa",""ar.bo.re","et","ak"tjo.ne"]
+    #raw_words = ["a'ma.re","'ka.sa","'ar.bo.re","et","ak'tjo.ne"]
     #words = []
     #for word in raw_words:
     #    words += [wf.make_word(word)]

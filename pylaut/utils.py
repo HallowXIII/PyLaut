@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from copy import deepcopy
 import itertools
 
@@ -41,3 +42,17 @@ def change_feature(phone, name, value):
         np.set_features_false(name)
     np.set_symbol_from_features()
     return np
+
+def flatten(ls):
+    return [elem for subl in ls for elem in subl]
+
+def flatten_partial(ls):
+    new = []
+    for item in ls:
+        if isinstance(item, Iterable):
+            for si in item:
+                new.append(si)
+        else:
+            new.append(item)
+    return new
+                
