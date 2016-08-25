@@ -5,6 +5,12 @@ from pylaut.phonology import Phonology, Phoneme
 from pylaut.word import Word, WordFactory, Syllable
 from pylaut.utils import change_feature, flatten_partial, mapwith, o
 
+"""
+type WordPart = Union[Syllable, Phoneme]
+type Plist[A] = Union[A, List[A]]
+"""
+
+
 class This(object):
     """
     A dummy object for "the current position" in a word. Contains utility
@@ -12,17 +18,19 @@ class This(object):
     """
 
     @staticmethod
-    def at(kind, position):
+    def at(kind, position, pred):
         """
-        at :: (Type * Int) -> (Transducer -> Type instance)
+        at :: (Type * Int * (WordPart -> Bool)) -> Transducer -> Bool
         
         Returns a function from a Transducer to the word part of type Type 
         at offset `position` from the current word part the change is acting on.
         """
         if kind == Syllable:
-            return lambda ch: ch.syllables[ch.syllables.index(ch.syllable) + position]
+            return lambda ch: pred(ch.syllables[
+                ch.syllables.index(ch.syllable) + position])
         elif kind == Phone:
-            return lambda ch: ch.phonemes[ch.phonemes.index(ch.phoneme) + position]
+            return lambda ch: pred(ch.phonemes[
+                ch.phonemes.index(ch.phoneme) + position])
         else:
             raise ValueError("Unknown position type")
 
@@ -43,7 +51,28 @@ class This(object):
             return lambda pred: lambda ch: lambda f, c: ch._run_ph(pred, f, c)
         else:
             raise ValueError("Unknown position type")
+
+    @staticmethod
+    def is_at_index(kind, index):
+        """
+        is_at_index :: (Type * Int) -> Transducer -> Bool
         
+        Function to find a phoneme at an absolute word position. Useful for
+        changing e.g. word-initial or word-final sounds.
+        
+        Args:
+            kind: Which type of word part to look for
+        
+            index: The absolute position of the word part within the word,
+                as a list index.
+        """
+        if kind == Syllable:
+            return lambda td: td.syllable == td.syllables[index]
+        elif kind == Phone:
+            return lambda td: td.phoneme == td.phonemes[index]
+        else:
+            raise ValueError("Unknown position type")
+
 
 # word -> word
 class Change(object):
@@ -58,9 +87,9 @@ class Change(object):
         self.changes = None
         self.conditions = []
 
-    def when(self, where, what):
+    def when(self, what):
         """
-        when :: (Change * (Transducer -> WordPart) * (WordPart -> Bool)) -> Change
+        when :: (Change * (Transducer -> Bool)) -> Change
 
         This method is intended to allow for conditioning a sound change on
         properties of word parts at relative locations within (e.g. m > b if the vowel
@@ -72,36 +101,34 @@ class Change(object):
         first argument to Change.when().
         
         Args:
-            where: a function that fetches a specific part of a word object
-                (syllable or phoneme) from a transducer.
-            what: a predicate on a word part
+            what: a predicate on a Transducer.
         
         Returns:
             A new Change object that applies itself to a word part when the
                 word part indicated by where satisfies what.
         
         Example:
-            ch.when(This.at(Phone, 0), λ p: p.is_vowel())
-            ch.when(λ td: td.phoneme, λ p: p.is_vowel())
+            ch.when(This.at(Phone, 0, λ p: p.is_vowel()))
+            ch.when(λ td: td.phoneme.is_vowel())
         """
         nc = deepcopy(self)
-        nc.conditions.append(o(what, where))
+        nc.conditions.append(what)
         return nc
 
-    def unless(self, where, what):
+    def unless(self, what):
         """
-        unless :: (Change * (Transducer -> WordPart) * (WordPart -> Bool)) -> Change
+        unless :: (Change * (Transducer -> Bool)) -> Change
 
         when, but with the condition negated
         """
         nc = deepcopy(self)
-        nc.conditions.append(lambda x: not what(where(x)))
+        nc.conditions.append(lambda x: not what(x))
         return nc
 
     def to(self, fetcher):
         """
         to :: Change * (Transducer -> (
-                  (WordPart -> WordPart) * (WordPart -> Bool)
+                  (WordPart -> WordPart) * (Transducer -> Bool)
               ) -> Word) -> Change
         
         A method to specify the domain of the change. It is intended for use
@@ -192,7 +219,7 @@ class Transducer(object):
     def _run_ph(self, pred, f, cond):
         """
         _run_ph :: (Transducer * (Phoneme -> Bool) * 
-                    (Phoneme -> Phoneme) * (Transducer -> Bool)) -> Word
+                    (Phoneme -> Plist[Phoneme]) * (Transducer -> Bool)) -> Word
         
         Applies a sound change over phonemes to the current word.
 
@@ -233,7 +260,8 @@ class Transducer(object):
     def _run_syl(self, pred, f, cond):
         """
         _run_syl :: (Transducer * (Syllable -> Bool) * 
-                     (Syllable -> Syllable) * (Transducer -> Bool)) -> Word
+                     (Syllable -> Plist[Syllable]) * (Transducer -> Bool)
+                    ) -> Word
         
         Applies a sound change over syllables to the current word.
         
@@ -286,13 +314,13 @@ def main():
     # b -> v / _$[+stressed]
     ch = Change().do(lambda x: Phoneme("v")).to(This.forall(Phone)(
         lambda p: p.is_symbol("b"))).when(
-            This.at(Syllable, 1), lambda a: a.is_stressed())
+            This.at(Syllable, 1, lambda a: a.is_stressed()))
 
     # C[-continuant -voice] -> C[-continuant +voice] / V_V
     c2 = Change().do(lambda p: change_feature(p, "voice", True)).to(
         This.forall(Phone)(lambda p: p.feature_is_false("continuant"))).when(
-            This.at(Phone, -1), lambda p: p.is_vowel()).when(
-                This.at(Phone, 1), lambda p: p.is_vowel())
+            This.at(Phone, -1, lambda p: p.is_vowel())).when(
+                This.at(Phone, 1, lambda p: p.is_vowel()))
 
     changed = list(map(c2.apply, map(ch.apply, words)))
     print(changed)

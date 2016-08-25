@@ -1,6 +1,7 @@
 from pylaut.phone import MonoPhone
 from pylaut.phonology import Phonology
 from pylaut.utils import breakat, powerset
+from copy import deepcopy
 import itertools
 import sys
 
@@ -21,6 +22,9 @@ class Syllable(object):
     def __iter__(self):
         for ph in self.phonemes:
             yield ph
+
+    def copy(self):
+        return deepcopy(self)
 
     def to_json(self):
         pass
@@ -111,8 +115,11 @@ class Syllable(object):
         #TODO: fun fact: len(a) is too big, and a smaller value will work. find it
         for m in range(len(sonorities)):
             for i, n in enumerate(sonorities):
-                if i > 0 and sonorities[i-1][1] == n[1]:
-                    sonorities[i] = None
+                try:
+                    if i > 0 and sonorities[i-1][1] == n[1]:
+                        sonorities[i] = None
+                except TypeError:
+                    continue
             sonorities = [x for x in sonorities if x]
 
         #return ns in the list

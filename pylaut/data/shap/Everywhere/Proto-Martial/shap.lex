@@ -1,0 +1,14 @@
+hu.zər
+bɯ.ʃər
+dai.ʃər
+ta.bər
+θi.ɡɒ.bik
+hu.kas
+bɯ.kas
+dai.kas
+ta.kas
+ɡɒ.bik	
+ʃaiʃ
+fhtid
+sip
+pʃi.u
