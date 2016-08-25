@@ -283,7 +283,7 @@ def main():
     raw_words = ["a'sap", "be'ko.mu", "uk.tu'ku"]
     words = [wf.make_word(rw) for rw in raw_words]
 
-    # b -> v / $[+stressed]$_
+    # b -> v / _$[+stressed]
     ch = Change().do(lambda x: Phoneme("v")).to(This.forall(Phone)(
         lambda p: p.is_symbol("b"))).when(
             This.at(Syllable, 1), lambda a: a.is_stressed())
