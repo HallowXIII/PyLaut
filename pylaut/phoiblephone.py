@@ -23,6 +23,14 @@ class PhoiblePhone(Phone):
     _NAS_C_FEATURE = "nasal"
 
     _SYL_FEATURE = "syllabic"
+    _TONE_FEATURE = "tone"
+
+    def is_tone(self):
+        if self.feature_is(self._TONE_FEATURE,
+                           self._TRUE_FEATURE):
+            return True
+        else:
+            return False
 
     def get_ipa_from_features(self):
         """

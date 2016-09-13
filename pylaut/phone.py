@@ -457,6 +457,10 @@ class MonoPhone(Phone):
     _LAT_C_FEATURE = "lateral"
     _NAS_C_FEATURE = "nasal"
     
+    #interface compliance
+    def is_tone(self):
+        return False
+
     #vowel properties
     def is_vowel(self):
         if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,

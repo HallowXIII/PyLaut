@@ -23,6 +23,9 @@ class Syllable(object):
         for ph in self.phonemes:
             yield ph
 
+    def __len__(self):
+        return len(self.phonemes)
+
     def copy(self):
         return deepcopy(self)
 
@@ -146,12 +149,13 @@ class Syllable(object):
             else:
                 pass
 
-            sonorities = [ph.get_sonority() for ph in self.phonemes]
+            non_tones = list(filter(lambda p: not p.is_tone(), self.phonemes))
+            sonorities = [ph.get_sonority() for ph in non_tones]
 
             onset, nucleus, coda = [], [], []
             if self.contains_vowel(): #the job is easier!
                 n,c = False,False
-                for i, ph in enumerate(self.phonemes):
+                for i, ph in enumerate(non_tones):
                     #we haven"t triggered either nucleus or coda bit + is C
                     if not n and not c and ph.is_consonant():
                         onset += [ph]
@@ -177,13 +181,16 @@ class Syllable(object):
             else:
                 nc = self.find_nuclei()[0]
                 nucleus.append(nc)
-                ncidx = self.phonemes.index(nc)
-                onset = self.phonemes[:ncidx]
-                coda = self.phonemes[ncidx:]
+                ncidx = non_tones.index(nc)
+                onset = non_tones[:ncidx]
+                try:
+                    coda = non_tones[ncidx+1:]
+                except IndexError:
+                    pass
 
             self.structure = (onset,nucleus,coda)
             return self.structure
-                    
+
     def get_onset(self):
         return self.get_structure()[0]
 
@@ -262,7 +269,8 @@ class Syllable(object):
 class Word(object):
     def __init__(self,syllables):
         self.syllables = syllables
-        self.phonemes = [syl.phonemes for syl in self.syllables]
+        self.phonemes = [phoneme for syl in self.syllables
+                         for phoneme in syl.phonemes]
         if len(self.syllables) > 1:
             self.syllables[0].set_word_position("initial")
             for syl in self.syllables[1:-1]:
@@ -284,6 +292,9 @@ class Word(object):
                 word_repr += syl.__repr__() + "/"
         
         return word_repr
+
+    def __len__(self):
+        return len(self.phonemes)
 
     def __iter__(self):
         for syl in self.syllables:
