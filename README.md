@@ -1,4 +1,4 @@
 PyLaut
 ======
 
-A Python package to aid in computer-assisted conlanging
+A Python package intended to provide highly programmable forward simulation of sound changes.
