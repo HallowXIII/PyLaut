@@ -43,6 +43,10 @@ def change_feature(phone, name, value):
     np.set_symbol_from_features()
     return np
 
+def delete_phonemes(syllable, phonemes):
+    syllable.phonemes = [p for p in syllable.phonemes if p not in phonemes]
+    return syllable
+
 def flatten(ls):
     return [elem for subl in ls for elem in subl]
 
