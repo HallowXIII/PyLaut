@@ -3,7 +3,7 @@ from functools import partial
 from pylaut.phone import Phone
 from pylaut.phonology import Phonology, Phoneme
 from pylaut.word import Word, WordFactory, Syllable
-from pylaut.utils import change_feature, flatten_partial, mapwith, o
+from pylaut.utils import change_feature, delete_phonemes, flatten_partial, mapwith, o
 
 """
 type WordPart = Union[Syllable, Phoneme]
@@ -206,7 +206,7 @@ class Transducer(object):
         self.word = word
         self.syllables = self.word.syllables
         self.syllable = self.syllables[0]
-        self.phonemes = [ph for syl in self.word.phonemes for ph in syl]
+        self.phonemes = self.word.phonemes
         self.phoneme = self.phonemes[0]
 
         self.change = change
@@ -322,7 +322,11 @@ def main():
             This.at(Phone, -1, lambda p: p.is_vowel())).when(
                 This.at(Phone, 1, lambda p: p.is_vowel()))
 
-    changed = list(map(c2.apply, map(ch.apply, words)))
+    c3 = Change().do(lambda s: delete_phonemes(s, s.get_onset())).to(
+        This.forall(Syllable)(lambda s: s.is_initial())).unless(
+            This.at(Syllable, 0, lambda s: s.is_stressed()))
+
+    changed = list(map(c3.apply, map(c2.apply, map(ch.apply, words))))
     print(changed)
 
 
