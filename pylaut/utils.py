@@ -59,4 +59,48 @@ def flatten_partial(ls):
         else:
             new.append(item)
     return new
-                
+
+class Stm(object):
+    """
+    Stm for 'statement'. This is a wrapper class to allow for
+    things resembling statement block expressions. Sadly,
+    most side-effecting functions in Python are methods, and
+    dynamic method resolution would require use of 'eval',
+    so most uses of this will still require a bunch of
+    lambdas.
+    """
+
+    def __init__(self, istate):
+        self.state = istate
+
+    def __rshift__(self, vfunc):
+        vfunc(self.state)
+        return self
+
+    def __call__(self):
+        return self.state
+
+class StmP(object):
+    """
+    Similar to the Stm class, but with persistence in the state.
+    """
+
+    def __init__(self, istate):
+        self.state = istate
+
+    def __rshift__(self, vfunc):
+        newstate = deepcopy(self.state)
+        vfunc(newstate)
+        return Stm(newstate)
+
+    def __call__(self):
+        return self.state
+
+def block(istate):
+    """
+    Simulates a statement block as an expression
+    """
+    def _block_(*args):
+        return istate
+
+    return _block_
