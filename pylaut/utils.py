@@ -34,19 +34,6 @@ def o(f, g):
 def milchreis():
     return float("Infinity")
 
-def change_feature(phone, name, value):
-    np = deepcopy(phone)
-    if value:
-        np.set_features_true(name)
-    else:
-        np.set_features_false(name)
-    np.set_symbol_from_features()
-    return np
-
-def delete_phonemes(syllable, phonemes):
-    syllable.phonemes = [p for p in syllable.phonemes if p not in phonemes]
-    return syllable
-
 def flatten(ls):
     return [elem for subl in ls for elem in subl]
 

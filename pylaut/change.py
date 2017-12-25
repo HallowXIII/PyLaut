@@ -3,7 +3,7 @@ from functools import partial
 from pylaut.phone import Phone
 from pylaut.phonology import Phonology, Phoneme
 from pylaut.word import Word, WordFactory, Syllable
-from pylaut.utils import change_feature, delete_phonemes, flatten_partial, mapwith, o
+from pylaut.utils import flatten_partial, mapwith, o
 
 """
 type WordPart = Union[Syllable, Phoneme]
@@ -295,39 +295,7 @@ class Transducer(object):
 
 
 def main():
-
-    phonemes = ["p","t","k",
-                "b","d","ɡ",
-                "m","n",
-                "s","f","x",
-                "w","j",
-                "r","l",
-                "a","e","i","o","u"]
-    phonology = Phonology(phonemes)
-
-    wf = WordFactory(phonology)
-
-    raw_words = ["a'sap", "be'ko.mu", "uk.tu'ku"]
-    words = [wf.make_word(rw) for rw in raw_words]
-
-    # b -> v / _$[+stressed]
-    ch = Change().do(lambda x: Phoneme("v")).to(This.forall(Phone)(
-        lambda p: p.is_symbol("b"))).when(
-            This.at(Syllable, 1, lambda a: a.is_stressed()))
-
-    # C[-continuant -voice] -> C[-continuant +voice] / V_V
-    c2 = Change().do(lambda p: change_feature(p, "voice", True)).to(
-        This.forall(Phone)(lambda p: p.feature_is_false("continuant"))).when(
-            This.at(Phone, -1, lambda p: p.is_vowel())).when(
-                This.at(Phone, 1, lambda p: p.is_vowel()))
-
-    c3 = Change().do(lambda s: delete_phonemes(s, s.get_onset())).to(
-        This.forall(Syllable)(lambda s: s.is_initial())).unless(
-            This.at(Syllable, 0, lambda s: s.is_stressed()))
-
-    changed = list(map(c3.apply, map(c2.apply, map(ch.apply, words))))
-    print(changed)
-
+    pass
 
 if __name__ == '__main__':
 

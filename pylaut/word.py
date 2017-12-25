@@ -4,6 +4,7 @@ from pylaut.utils import breakat, powerset
 from copy import deepcopy
 import itertools
 import sys
+from typing import Optional
 
 class Syllable(object):
 
@@ -299,6 +300,20 @@ class Word(object):
     def __iter__(self):
         for syl in self.syllables:
             yield syl
+
+    def has_stress(self) -> bool:
+        return any(map(lambda s: s.is_stressed(), self.syllables))
+
+    def get_stressed_position(self) -> Optional[int]:
+        for i, v in enumerate(self.syllables):
+            if v.is_stressed():
+                return i
+
+    def get_stressed(self) -> Optional[Syllable]:
+        spos = self.get_stressed_position()
+        if spos is not None:
+            return self.syllables[spos]
+
 
     def copy(self):
         return deepcopy(self)
