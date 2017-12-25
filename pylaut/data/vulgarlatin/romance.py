@@ -1,10 +1,4 @@
-#http://stackoverflow.com/posts/11158224/revisions
-import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir) 
-
-import lexicon
+import pylaut.lexicon
 
 if __name__ == "__main__":
 
@@ -16,7 +10,7 @@ if __name__ == "__main__":
 
     latin_lexicon.language = "Vulgar Latin"
     latin_lexicon.set_date(200,"AD")
-    
+
     #make Lexicons
     for line in split_words:
         latin_lexicon.add_entry(lexicon.LexiconEntry(*line))
