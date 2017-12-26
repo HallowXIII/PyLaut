@@ -2,7 +2,7 @@ from pylaut.word import WordFactory, Syllable
 from pylaut.phone import Phone
 from pylaut.phonology import Phoneme, Phonology
 from pylaut.change import *
-from pylaut.utils import change_feature
+from pylaut.change_functions import change_feature
 
 def metathesize(syl, index, offset):
     ns = syl.copy()
