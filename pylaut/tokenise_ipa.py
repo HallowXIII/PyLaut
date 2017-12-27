@@ -11,7 +11,7 @@ def tokenise_ipa(s):
     Outputs a tuple of tokenised ipa symbols, with diacritics grouped with base 
     glyphs. If the ipa is presented sI'lab.ik.lI, it outputs a tuple of tuples 
     """
-    with open("monophone_ipa_diacritics","r") as dia_file:
+    with open("data/monophone_ipa_diacritics","r") as dia_file:
             read_words = [x for x in dia_file.read().splitlines()]
             diacritics = [x.split()[0] for x in read_words]
 
