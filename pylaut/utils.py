@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from copy import deepcopy
 import itertools
+from typing import Union, List, Generic, TypeVar, NewType
 
 def breakat(ls, breaks):
     slices = []

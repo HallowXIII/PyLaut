@@ -36,7 +36,7 @@ ki'ta.te      citate      city2
 ko.mɪn'tja.re comintiare  start
 kon'ta.re     contare     tell;count
 'kɔ.re        core        heart1
-'kɔ.r         cor         heart2
+'kɔr         cor         heart2
 'kɔr.pʊ       corpu       body1
 'kɔr.pʊs      corpus      body2
 'kre.de.re    credere     believe

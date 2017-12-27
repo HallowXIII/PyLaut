@@ -3,7 +3,7 @@ from os import path
 
 class PhoiblePhone(Phone):
     """
-    PhoiblePhones are Phones which use the MONOPHONE feature-set. For further 
+    PhoiblePhones are Phones which use the PHOIBLE feature-set. For further 
     information, please refer to Phone.
     """
     

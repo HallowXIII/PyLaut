@@ -1,5 +1,5 @@
 from pylaut.phone import MonoPhone
-from pylaut.phonology import Phonology
+from pylaut.phonology import Phonology, Phoneme
 from pylaut.utils import breakat, powerset
 from copy import deepcopy
 import itertools

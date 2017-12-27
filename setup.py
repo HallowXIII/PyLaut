@@ -49,6 +49,11 @@ setup(
     package_data={'pylaut': ['data/monophone', 'data/monophone_ipa',
                              'data/monophone_ipa_diacritics',
                              'data/phoible-segf', 'data/phoible-segf_ipa']
-    }
+    },
+
+    #dependencies for the package
+    install_requires = [
+        'lark-parser'
+    ]
 
 )

@@ -1,6 +1,6 @@
 from pprint import pprint
 import json
-import lexicon
+import pylaut.lexicon
 
 class Family(object):
     def __init__(self):
@@ -20,12 +20,13 @@ class Family(object):
         self.calendar_signed = True
         self.calendar_has_zero = False
         self.calendar = ["BC","AD"]
+
     def set_calendar_numerical(self):
         self.calendar_signed = False
         self.calendar_has_zero = True
         self.calendar = ["",""]
         
-    def add_descendant(self, new_lang,parent_lang = "root"):
+    def add_descendant(self, new_lang, parent_lang = "root"):
         if parent_lang == "root":
             parent_lang = self.protolang
         parent_lang.add_descendant(new_lang)
@@ -51,7 +52,7 @@ class Family(object):
             print("     {} ({})".format(langname, self.get_year_from_calendar(lang.date)))
             for lang2name, lang2 in lang.descendants.items():
                 print("        {} ({})".format(lang2name, self.get_year_from_calendar(lang2.date)))
-            
+
 class Language(object):
     def __init__(self):
         self.name = None

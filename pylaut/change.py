@@ -5,12 +5,6 @@ from pylaut.phonology import Phonology, Phoneme
 from pylaut.word import Word, WordFactory, Syllable
 from pylaut.utils import flatten_partial, mapwith, o
 
-"""
-type WordPart = Union[Syllable, Phoneme]
-type Plist[A] = Union[A, List[A]]
-"""
-
-
 class This(object):
     """
     A dummy object for "the current position" in a word. Contains utility
@@ -86,6 +80,9 @@ class Change(object):
         self.appl = None
         self.changes = None
         self.conditions = []
+
+    def __call__(self, w):
+        return self.apply(w)
 
     def when(self, what):
         """

@@ -1,8 +1,54 @@
 import typing
-from typing import List
+from typing import List, Callable, Iterable, Optional
+from itertools import zip_longest
 from pylaut.change import *
 from pylaut.word import Word, WordFactory, Syllable
 from pylaut.phone import Phone
+
+class Contour(Phoneme):
+    def __init__(self, plist):
+        super().__init__()
+        self.children = plist
+        self.symbol = "".join(p.symbol for p in self.children)
+
+    def __repr__(self):
+        return "".join(["/", self.symbol, "/"])
+
+class ComplexDomain(Change):
+
+    def __init__(self, plist):
+        super().__init__()
+        self.contour = plist
+
+    def apply(self, word_obj):
+        return super().apply(sequence_to_contour(word_obj, self.contour))
+
+def match_subsequence(w: Word, ph: Phoneme, seq: List[Phoneme]) -> Optional[List[Phoneme]]:
+    symbols = list(map(lambda p: p.symbol, seq))
+    idx = w.phonemes.index(ph)
+    match = False
+    if ph.symbol in symbols:
+        try:
+            subsymbols = symbols[symbols.index(ph.symbol):]
+            subsequence = w.phonemes[idx:idx+len(subsymbols)]
+            match = all(p.is_symbol(q.symbol) for (p,q) in zip(seq, subsequence))
+        except IndexError:
+            pass
+    return subsequence if match else None
+
+def delete_phonemes_from_word(w: Word, seq: List[Phoneme]):
+    for s in w.syllables:
+        s.phonemes = [p for p in s.phonemes if p not in seq]
+    w.phonemes = [p for s in w.syllables for p in s.phonemes]
+
+def sequence_to_contour(w: Word, seq: List[Phoneme]) -> Word:
+    for syllable in w.syllables:
+        for i in range(len(syllable.phonemes)):
+            subseq = match_subsequence(w, syllable.phonemes[i], seq)
+            if subseq is not None:
+                syllable.phonemes[i] = Contour(subseq)
+                delete_phonemes_from_word(w, subseq)
+    return w
 
 def change_feature(phone: Phone, name: str, value: bool) -> Phone:
     np = deepcopy(phone)
@@ -13,7 +59,7 @@ def change_feature(phone: Phone, name: str, value: bool) -> Phone:
     np.set_symbol_from_features()
     return np
 
-def delete_phonemes(syllable: Syllable, phonemes: List[Phoneme]) -> Syllable:
+def delete_phonemes(syllable: Syllable, phonemes: Iterable[Phoneme]) -> Syllable:
     syllable.phonemes = [p for p in syllable.phonemes if p not in phonemes]
     return syllable
 
@@ -30,3 +76,19 @@ def after_stress(td: Transducer) -> bool:
         return False
     else:
         return (td.syllables.index(td.syllable) > wstr)
+
+def replace_phonemes(domain: List[Phone], codomain: List[Phone]) -> Change:
+
+    dom = Contour(domain)
+    return ComplexDomain(domain).do(lambda x: codomain).to(
+        This.forall(Phone)(lambda p: p.is_symbol(dom.symbol)))
+
+
+def is_diphthong(nucleus: Iterable[Phone], diphthong: Iterable[str]) -> bool:
+    for ch, v in zip_longest(diphthong, nucleus):
+        try:
+            if not v.is_symbol(ch):
+                return False
+        except AttributeError:
+            return False
+    return True
