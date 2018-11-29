@@ -26,7 +26,7 @@ IntervocalVoicing(/f/)
 /θ/ -> /z/
 
 #BL
-Merge({/d/,/t/},/l/) | _[-consonantal, rounded, back]
+Merge({/d/,/t/},/l/) | _[-consonantal +round, back]
 
 #MP
 

@@ -92,8 +92,11 @@ def intervocal_voicing(this):
 
 
 def merge(phonemes, target):
+    target = target[0]
+    phonemes = [p[0] for p in phonemes]
     return Change().do(lambda _: target).to(
-        This.forall(Phone)(lambda p: any(p.is_symbol(b) for b in phonemes)))
+        This.forall(Phone)(
+            lambda p: any(p.is_symbol(b.symbol) for b in phonemes)))
 
 
 def epenthesis(this, phoneme):

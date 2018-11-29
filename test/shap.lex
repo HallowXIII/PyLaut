@@ -1,3 +1,4 @@
+tə.tə.tu
 pʃɯ.ra.ʃu
 hu.zər
 bɯ.ʃər

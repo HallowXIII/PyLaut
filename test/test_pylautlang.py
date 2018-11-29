@@ -26,7 +26,7 @@ def get_word_factory():
                 "b", "d", "ɡ",
                 "m", "n", "ŋ",
                 "f", "θ", "h", "s", "z", "ʃ",
-                "r",
+                "r", "l",
                 "i", "e", "o", "u", "ɯ", "ə", "a", "ɒ",
                 "iː", "eː", "oː", "uː", "ɯː", "əː", "aː", "ɒː"]
     phonology = Phonology(phonemes)
@@ -34,17 +34,14 @@ def get_word_factory():
     return WordFactory(phonology)
 
 def main():
-    p = get_parser()
     f = get_scfile()
     l = get_lexicon()
 
-    t = p.parse(f)
-    print(t.pretty())
     wf = get_word_factory()
     library = get_library()
     library["Resyllabify"] = lambda *_: Resyllabify(wf=wf)
     pl = PyLautLang(library)
-    tt = pl.transform(t)
+    tt = pl.compile(f)
 
     manual_changes = shaptoem.get_changes()
 

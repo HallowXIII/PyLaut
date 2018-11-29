@@ -1,5 +1,4 @@
 from lark import Lark, ParseError, Transformer
-from lark.lexer import Token
 from pkgutil import get_data
 from pylaut.phone import Phone
 from pylaut.phonology import Phoneme
@@ -8,7 +7,6 @@ from pylaut.change import Change, This, ChangeGroup
 from pylaut.change_functions import replace_phonemes, change_feature
 from pylaut.pylautlanglib import make_predicate
 import functools as ft
-import pdb
 
 
 def get_parser():
@@ -44,9 +42,16 @@ def flatten(lst):
 
 
 class PyLautLang(Transformer):
-    def __init__(self, funcs={}):
+    def __init__(self, funcs={}, featureset=None):
         super().__init__()
         self.funcs = funcs
+        self.featureset = featureset
+        self.parser = get_parser()
+
+    def compile(self, scstring):
+        t = self.parser.parse(scstring)
+        change = self.transform(t)
+        return change
 
     def start(self, l):
         nl = [c for c in l if isinstance(c, Change)]
