@@ -4,6 +4,8 @@ from pylaut.phone import Phone
 from pylaut.phonology import Phonology, Phoneme
 from pylaut.word import Word, WordFactory, Syllable
 from pylaut.utils import flatten_partial, mapwith, o
+import pdb
+
 
 class This(object):
     """
@@ -20,11 +22,29 @@ class This(object):
         at offset `position` from the current word part the change is acting on.
         """
         if kind == Syllable:
-            return lambda ch: pred(ch.syllables[
-                ch.syllables.index(ch.syllable) + position])
+
+            def run_at_syllable(ch, p=pred):
+                idx = ch.syllables.index(ch.syllable)
+                if idx+position < 0:
+                    return False
+                try:
+                    return p(ch.syllables[ch.syllables.index(ch.syllable) + position])
+                except IndexError:
+                    return False
+
+            return run_at_syllable
         elif kind == Phone:
-            return lambda ch: pred(ch.phonemes[
-                ch.phonemes.index(ch.phoneme) + position])
+
+            def run_at_phoneme(ch, p=pred):
+                idx = ch.phonemes.index(ch.phoneme)
+                if idx+position < 0:
+                    return False
+                try:
+                    return p(ch.phonemes[ch.phonemes.index(ch.phoneme) + position])
+                except IndexError:
+                    return False
+
+            return run_at_phoneme
         else:
             raise ValueError("Unknown position type")
 
@@ -32,7 +52,7 @@ class This(object):
     def forall(kind):
         """
         forall :: Type -> (WordPart -> Bool) -> Transducer ->
-            ((WordPart -> WordPart) * (Transducer -> Bool)) -> Word
+            ((Transducer -> WordPart) * (Transducer -> Bool)) -> Word
 
         A pretty hacky function that returns a breathtaking mess of lambdas
         internally used by Change objects to pull all the parts of a sound
@@ -60,10 +80,17 @@ class This(object):
             index: The absolute position of the word part within the word,
                 as a list index.
         """
+
+        def is_at_syllable(td, index=index):
+            return td.syllable == td.syllables[index]
+
+        def is_at_phoneme(td, index=index):
+            return td.phoneme == td.phonemes[index]
+
         if kind == Syllable:
-            return lambda td: td.syllable == td.syllables[index]
+            return is_at_syllable
         elif kind == Phone:
-            return lambda td: td.phoneme == td.phonemes[index]
+            return is_at_phoneme
         else:
             raise ValueError("Unknown position type")
 
@@ -79,10 +106,14 @@ class Change(object):
     def __init__(self):
         self.appl = None
         self.changes = None
+        self.label = None
         self.conditions = []
 
     def __call__(self, w):
         return self.apply(w)
+
+    def __repr__(self):
+        return "Change {}: {}".format(self.label, self.changes)
 
     def when(self, what):
         """
@@ -125,7 +156,7 @@ class Change(object):
     def to(self, fetcher):
         """
         to :: Change * (Transducer -> (
-                  (WordPart -> WordPart) * (Transducer -> Bool)
+                  (Transducer -> WordPart) * (Transducer -> Bool)
               ) -> Word) -> Change
 
         A method to specify the domain of the change. It is intended for use
@@ -158,10 +189,10 @@ class Change(object):
 
     def do(self, changer):
         """
-        do :: (Change * (WordPart -> WordPart)) -> Change
+        do :: (Change * (Transducer -> WordPart)) -> Change
 
         A method to specify the codomain of a change. `changer` must be a
-        function that takes a word part and returns a word part of the same kind.
+        function that takes a transducer and returns a word part.
 
         Example:
         ch.do(λ s: s.copy().set_stressed())
@@ -193,7 +224,6 @@ class Change(object):
 
 
 class Transducer(object):
-
     """
     Class for applying sound changes to words. Supports iteration through
     both syllables and phonemes.
@@ -208,6 +238,8 @@ class Transducer(object):
 
         self.change = change
 
+        self.ignore_next = False
+
     def __call__(self):
         return self.change._eval(self)
 
@@ -216,7 +248,7 @@ class Transducer(object):
     def _run_ph(self, pred, f, cond):
         """
         _run_ph :: (Transducer * (Phoneme -> Bool) *
-                    (Phoneme -> Plist[Phoneme]) * (Transducer -> Bool)) -> Word
+                    (Transducer -> Plist[Phoneme]) * (Transducer -> Bool)) -> Word
 
         Applies a sound change over phonemes to the current word.
 
@@ -241,13 +273,18 @@ class Transducer(object):
             new_syllable = []
             for phoneme in syllable:
                 self.phoneme = phoneme
-                try:
-                    np = f(phoneme) if pred(phoneme) and cond(self) else phoneme
-                except IndexError:
+                if self.ignore_next:
                     np = phoneme
+                    self.ignore_next = False
+                else:
+                    try:
+                        np = f(
+                            self) if pred(phoneme) and cond(self) else phoneme
+                    except IndexError:
+                        np = phoneme
                 new_syllable.append(np)
-                clean_syllable = flatten_partial(
-                    filter(lambda x: x is not None, new_syllable))
+            clean_syllable = flatten_partial(
+                filter(lambda x: x is not None, new_syllable))
             ns = Syllable(clean_syllable)
             if syllable.is_stressed():
                 ns.set_stressed()
@@ -257,7 +294,7 @@ class Transducer(object):
     def _run_syl(self, pred, f, cond):
         """
         _run_syl :: (Transducer * (Syllable -> Bool) *
-                     (Syllable -> Plist[Syllable]) * (Transducer -> Bool)
+                     (Transducer -> Plist[Syllable]) * (Transducer -> Bool)
                     ) -> Word
 
         Applies a sound change over syllables to the current word.
@@ -279,20 +316,41 @@ class Transducer(object):
         new_syllables = []
         for syllable in self.word:
             self.syllable = syllable
-            try:
-                new_syllable = (f(syllable) if pred(syllable) and cond(self)
-                                else syllable)
-            except IndexError:
-                new_syllable = syllable
+            if not self.ignore_next:
+                try:
+                    new_syllable = (f(self) if pred(syllable) and cond(self)
+                                    else syllable)
+                except IndexError:
+                    new_syllable = syllable
+            self.ignore_next = False
             ns = Syllable(new_syllable)
             if syllable.is_stressed():
                 ns.set_stressed()
             new_syllables.append(ns)
         return Word(new_syllables)
 
+    def advance(self):
+        self.ignore_next = True
+
+
+class ChangeGroup(Change):
+    def __init__(self, changes):
+        super().__init__()
+        self.changes = changes
+
+    def apply(self, word_obj):
+        new_changes = [deepcopy(ch) for ch in self.changes]
+        for ch in new_changes:
+            ch.conditions.extend(self.conditions)
+        new_word = word_obj
+        for ch in new_changes:
+            new_word = ch.apply(new_word)
+        return new_word
+
 
 def main():
     pass
+
 
 if __name__ == '__main__':
 

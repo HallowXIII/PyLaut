@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from copy import deepcopy
 import itertools
+import pdb
 from typing import Union, List, Generic, TypeVar, NewType
 
 def breakat(ls, breaks):
@@ -47,6 +48,34 @@ def flatten_partial(ls):
         else:
             new.append(item)
     return new
+
+def split(iterable, sep=" "):
+    if isinstance(iterable, str):
+        return iterable.split(sep)
+    slices = []
+    current_slice = []
+    for elem in iterable:
+        if elem == sep:
+            slices.append(current_slice)
+            current_slice = []
+        else:
+            current_slice.append(elem)
+    slices.append(current_slice)
+    return slices
+
+def replace(iterable, target, *args):
+    if isinstance(iterable, str):
+        return iterable.replace(target, "".join(args))
+    else:
+        new_iterable = []
+        for elem in iterable:
+            if elem == target:
+                new_iterable.append(elem)
+                for a in args:
+                    new_iterable.append(a)
+            new_iterable.append(elem)
+        return new_iterable
+
 
 class Stm(object):
     """

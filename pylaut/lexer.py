@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 #Code based substantially off work by Jay Conrod at jayconrod.com
 
 import re

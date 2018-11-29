@@ -15,7 +15,7 @@ Lengthen([-consonantal]) | _[+sibilant -voice]
 #NR
 
 Lengthen([-consonantal]) |  /h/_
-                   | _/h/#
+                         | _/h/#
 
 /h/ => /aː/ | [+consonantal]_[+consonantal]
     => /aː/ | [+consonantal]_#
