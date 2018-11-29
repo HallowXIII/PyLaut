@@ -15,5 +15,5 @@ How to hold all the information information about lexicons
      ~ merged in on the fly
      ~ these are also dated to allow for eg couplets, late loans being unaffected by changes etc
   -- Lexicon entries can be tagged as obsolete, register changed etc
-  -- contains a Phonology
+  -- contains a Phonology -- why? RHNW 27/12/2017
 
