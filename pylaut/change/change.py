@@ -1,10 +1,10 @@
 from copy import deepcopy
 from functools import partial
-from pylaut.phone import Phone
-from pylaut.phonology import Phonology, Phoneme
-from pylaut.word import Word, WordFactory, Syllable
+
+from pylaut.language.phonology.phone import Phone
+from pylaut.language.phonology.phonology import Phoneme, Phonology
+from pylaut.language.phonology.word import Syllable, Word, WordFactory
 from pylaut.utils import flatten_partial, mapwith, o
-import pdb
 
 
 class This(object):

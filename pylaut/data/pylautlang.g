@@ -1,3 +1,4 @@
+%import common.ESCAPED_STRING
 %import common.STRING_INNER
 %import common.DIGIT
 %import common.SIGNED_INT
@@ -7,9 +8,14 @@
 %import common.WS
 %ignore WS
 
-start: (labelled|label)*
+start: (group|law)*
 
-labelled: label? change
+meta: ("META"|"meta") IDENTIFIER (ESCAPED_STRING|SIGNED_INT)
+block: ("BEGIN"|"begin") (change)* ("END"|"end")
+law: ("CHANGE"|"change") (meta)* block
+group_block: ("BEGIN"|"begin") (law)* ("END"|"end")
+group: ("GROUP"|"group") (meta)* group_block
+
 phoneme: "/" PHONEME_STR "/"
 phoneme_list: "{" (phoneme ",")* phoneme "}"
 ?value: phoneme | phoneme_list | feat_expr
@@ -49,7 +55,6 @@ fcall: IDENTIFIER "(" (value ",")* [value] ")"
 index: entity "[" indexer "]"
 member: entity "." IDENTIFIER
 ?entity: member | index | IDENTIFIER
-label: "#" IDENTIFIER
 offset: "@" SIGNED_INT
 ?indexer: SIGNED_INT | offset
 

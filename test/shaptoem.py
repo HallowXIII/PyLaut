@@ -1,8 +1,8 @@
-from pylaut.word import WordFactory, Syllable
-from pylaut.phone import Phone
-from pylaut.phonology import Phoneme, Phonology
-from pylaut.change import *
-from pylaut.change_functions import change_feature
+from pylaut.language.phonology.word import WordFactory, Syllable
+from pylaut.language.phonology.phone import Phone
+from pylaut.language.phonology.phonology import Phoneme, Phonology
+from pylaut.change.change import *
+from pylaut.change.change_functions import change_feature
 
 
 def metathesize(syl, index, offset):

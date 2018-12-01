@@ -1,4 +1,4 @@
-from pylaut.phone import MonoPhone
+from pylaut.language.phonology.phone import MonoPhone
 import json
 
 #what should a phonology store?

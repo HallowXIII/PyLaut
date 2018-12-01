@@ -1,17 +1,20 @@
+import lark
 from lark import Lark, ParseError, Transformer
 from pkgutil import get_data
-from pylaut.phone import Phone
-from pylaut.phonology import Phoneme
-from pylaut.word import Syllable
-from pylaut.change import Change, This, ChangeGroup
-from pylaut.change_functions import replace_phonemes, change_feature
-from pylaut.pylautlanglib import make_predicate
+from pylaut.language.phonology.phone import Phone
+from pylaut.language.phonology.phonology import Phoneme
+from pylaut.language.phonology.word import Syllable
+from pylaut.change.change import Change, This, ChangeGroup
+from pylaut.change.languagetree import SoundLaw
+from pylaut.change.change_functions import replace_phonemes, change_feature
+from pylaut.pylautlang.lib import make_predicate
 import functools as ft
 
+import pdb
 
 def get_parser():
-    pllg = Lark(get_data("pylaut", "data/pylautlang.g").decode("utf-8"))
-    #                parser = "lalr")
+    pllg = Lark(get_data("pylaut", "data/pylautlang.g").decode("utf-8"),
+                propagate_positions=True)
     return pllg
 
 
@@ -41,6 +44,18 @@ def flatten(lst):
     return [item for sublist in lst for item in sublist]
 
 
+def compile(scstring, lib=None, featureset=None):
+    pll = PyLautLang(lib, featureset)
+    change = pll.compile(scstring)
+    return change
+
+
+def validate(scstring):
+    pll = PyLautLang()
+    pll.parser.parse(scstring)
+    return True
+
+
 class PyLautLang(Transformer):
     def __init__(self, funcs={}, featureset=None):
         super().__init__()
@@ -57,16 +72,22 @@ class PyLautLang(Transformer):
         nl = [c for c in l if isinstance(c, Change)]
         return nl
 
-    def label(self, args):
-        return args[0]
+    def meta(self, args):
+        return ('meta', args[0], args[1])
 
-    def labelled(self, args):
-        if len(args) == 2:
-            change = args[1]
-            change.label = args[0]
-        else:
-            change = args[0]
-        return change
+    def block(self, args):
+        return args
+
+    @lark.v_args(meta=True)
+    def law(self, args, meta):
+        block = args[0]
+        for change in block:
+            pass
+
+    @lark.v_args(meta=True)
+    def group(self, args, meta):
+        pdb.set_trace()
+        pass
 
     def phoneme(self, l):
         pl = phoneme_list_from_string(l[0])

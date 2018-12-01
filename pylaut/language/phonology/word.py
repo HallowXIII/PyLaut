@@ -1,11 +1,10 @@
-from pylaut.phone import MonoPhone
-from pylaut.phonology import Phonology, Phoneme
-from pylaut.utils import breakat, powerset, split, replace
 from copy import deepcopy
-import itertools
-import sys
 from typing import Optional
+
 from lingpy.sequence.sound_classes import syllabify
+
+from pylaut.language.phonology.phonology import Phonology
+from pylaut.utils import replace, split
 
 
 class Syllable(object):

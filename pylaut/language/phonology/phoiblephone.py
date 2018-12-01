@@ -1,4 +1,4 @@
-from pylaut.phone import Phone
+from pylaut.language.phonology.phone import Phone
 from os import path
 
 class PhoiblePhone(Phone):

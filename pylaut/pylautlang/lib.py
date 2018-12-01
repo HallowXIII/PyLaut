@@ -1,10 +1,6 @@
-import typing
-from typing import List, Callable, Iterable, Optional, Union
-from itertools import zip_longest
-from pylaut.change import *
-from pylaut.change_functions import *
-from pylaut.word import Word, WordFactory, Syllable
-from pylaut.phone import Phone, MonoPhone
+from pylaut.change.change import *
+from pylaut.change.change_functions import *
+from pylaut.language.phonology.phone import Phone
 
 
 def make_predicate(parser_entity):
@@ -121,6 +117,10 @@ def resyllabify(*args):
 
 def get_library():
     library = {
+        "__name__": "libpylautlang",
+        "__version__": "0.1.0",
+        "__file__": __file__,
+        "__module_name__": __name__,
         "Metathesis": metathesis,
         "Lengthen": lengthen,
         "IntervocalVoicing": intervocal_voicing,

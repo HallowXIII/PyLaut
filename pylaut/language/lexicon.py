@@ -1,4 +1,4 @@
-from pylaut import word, phonology
+from pylaut.language.phonology import word, phonology
 from pylaut.tokenise_ipa import tokenise_ipa
 import random
 

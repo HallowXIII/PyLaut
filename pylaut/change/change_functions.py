@@ -1,11 +1,10 @@
-import typing
 from itertools import zip_longest
-from typing import Callable, Iterable, List, Optional
+from typing import Iterable, List, Optional
 
-from pylaut.change import *
-from pylaut.phone import Phone
-from pylaut.phonology import Phonology
-from pylaut.word import Syllable, Word, WordFactory
+from pylaut.change.change import *
+from pylaut.language.phonology.phone import Phone
+from pylaut.language.phonology.phonology import Phoneme, Phonology
+from pylaut.language.phonology.word import Syllable, Word, WordFactory
 
 
 class Contour(Phoneme):
