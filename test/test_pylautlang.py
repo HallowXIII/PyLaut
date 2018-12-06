@@ -31,12 +31,11 @@ def get_word_factory():
 
     return WordFactory(phonology)
 
-def main():
+def transform_martial():
     f = get_scfile()
     l = get_lexicon()
     p = get_parser()
     t = p.parse(f)
-    print(t.pretty())
     # wf = get_word_factory()
     library = get_library()
     # library["Resyllabify"] = lambda *_: Resyllabify(wf=wf)
@@ -44,6 +43,12 @@ def main():
     # t = pl.parser.parse(f)
     # print(t.pretty())
     tt = pl.transform(t)
+    return t, tt
+
+def main():
+    t, tt = transform_martial()
+    print(t.pretty())
+    print(tt)
 
     # manual_changes = shaptoem.get_changes()
 

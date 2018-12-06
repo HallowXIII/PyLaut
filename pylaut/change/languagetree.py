@@ -42,6 +42,7 @@ class SoundLaw():
 
     def __init__(self,
                  change_repr,
+                 changes,
                  date,
                  sc_lib=None,
                  sc_lib_name=None,
@@ -49,6 +50,7 @@ class SoundLaw():
                  name=None,
                  description=None):
         self.code = change_repr
+        self.changes = changes
         self.date = date
         self.sc_lib = sc_lib
         self.sc_lib_name = sc_lib_name
@@ -58,19 +60,22 @@ class SoundLaw():
 
         self.validate()
 
-        @classmethod
-        def from_json(cls, json_obj):
-            if isinstance(json_obj, str):
-                json_obj = jm.loads(json_obj)
+    @classmethod
+    def from_json(cls, json_obj):
+        if isinstance(json_obj, str):
+            json_obj = jm.loads(json_obj)
 
-            return cls(
-                json_obj['code'],
-                json_obj['date'],
-                sc_lib=json_obj['sc_lib'],
-                sc_lib_name=json_obj['sc_lib_name'],
-                sc_lib_version=json_obj['sc_lib_version'],
-                description=json_obj['description'],
-                name=json_obj['name'])
+        return cls(
+            json_obj['code'],
+            json_obj['date'],
+            sc_lib=json_obj['sc_lib'],
+            sc_lib_name=json_obj['sc_lib_name'],
+            sc_lib_version=json_obj['sc_lib_version'],
+            description=json_obj['description'],
+            name=json_obj['name'])
+
+    def __repr__(self):
+        return "<SoundLaw {}>".format(self.name)
 
     def validate(self):
 
@@ -83,13 +88,13 @@ class SoundLaw():
         # library that exposes the changes as functions.
         # We may want to make this easier.
 
-        # if not isinstance(self.code, str):
-        #     raise TypeError(
-        #         "Expected str, got {}: ".format(type(self.code)),
-        #         "SoundLaw objects must be initialized with "
-        #         "PyLautLang representations of the change!")
+        if not isinstance(self.code, str):
+            raise TypeError(
+                "Expected str, got {}: ".format(type(self.code)),
+                "SoundLaw objects must be initialized with "
+                "PyLautLang representations of the change!")
 
-        self.sc_lib = self.sc_lib_from_serializable(self.sc_lib)
+        # self.sc_lib = self.sc_lib_from_serializable(self.sc_lib)
 
         if self.sc_lib_name:
             if not self.sc_lib['__name__'] == self.sc_lib_name:
@@ -113,55 +118,49 @@ class SoundLaw():
         #     raise ValueError(
         #         "SoundLaw must be initialized with valid PyLautLang!") from e
 
-        def to_json(self, as_dict=False):
-            obj = {
-                'name': self.name,
-                'code': self.code,
-                'date': self.date,
-                'sc_lib': self.sc_lib_to_serializeable_dict(),
-                'sc_lib_name': self.sc_lib_name,
-                'sc_lib_version': self.sc_lib_version,
-                'description': self.description
-            }
+    def to_json(self, as_dict=False):
+        obj = {
+            'name': self.name,
+            'code': self.code,
+            'date': self.date,
+            'sc_lib': self.sc_lib_to_serializable_dict(),
+            'sc_lib_name': self.sc_lib_name,
+            'sc_lib_version': self.sc_lib_version,
+            'description': self.description
+        }
 
-            if as_dict:
-                return obj
-
-            return jm.dumps(obj)
-
-        def sc_lib_to_serializable_dict(self):
-            obj = {}
-            for k, v in self.sc_lib.items():
-                if k in [
-                        '__name__', '__version__', '__file__',
-                        '__module_name__'
-                ]:
-                    obj[k] = v
-                else:
-                    obj[k] = v.__name__
-
+        if as_dict:
             return obj
 
-        def sc_lib_from_serializable(self, sc_lib_dict):
-            sc_lib = {}
-            try:
-                mod = importlib.import_module(sc_lib_dict['__module_name__'])
-            except ImportError:
-                spec = importlib.util.spec_from_file_location(
-                    sc_lib_dict['__module_name__'], sc_lib_dict['__file__'])
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
+        return jm.dumps(obj, indent=2)
 
-            for k, v in sc_lib_dict.items():
-                if k in [
-                        '__name__', '__version__', '__file__',
-                        '__module_name__'
-                ]:
-                    sc_lib[k] = v
-                else:
-                    sc_lib[k] = mod.v
+    def sc_lib_to_serializable_dict(self):
+        obj = {}
+        for k, v in self.sc_lib.items():
+            if k in ['__name__', '__version__', '__file__', '__module_name__']:
+                obj[k] = v
+            else:
+                obj[k] = v.__name__
 
-            return sc_lib
+        return obj
+
+    def sc_lib_from_serializable(self, sc_lib_dict):
+        sc_lib = {}
+        try:
+            mod = importlib.import_module(sc_lib_dict['__module_name__'])
+        except ImportError:
+            spec = importlib.util.spec_from_file_location(
+                sc_lib_dict['__module_name__'], sc_lib_dict['__file__'])
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+
+        for k, v in sc_lib_dict.items():
+            if k in ['__name__', '__version__', '__file__', '__module_name__']:
+                sc_lib[k] = v
+            else:
+                sc_lib[k] = mod.v
+
+        return sc_lib
 
 
 class SoundLawGroup(SoundLaw):
@@ -173,7 +172,7 @@ class SoundLawGroup(SoundLaw):
                  sc_lib_version=None,
                  name=None,
                  description=None):
-        super().__init__("/0/ -> /0/", date, sc_lib, sc_lib_name,
+        super().__init__("GROUP", children, date, sc_lib, sc_lib_name,
                          sc_lib_version, name, description)
         self.children = children
 
@@ -196,7 +195,7 @@ class SoundLawGroup(SoundLaw):
         obj['children'] = [c.to_json(as_dict=True) for c in self.children]
         if as_dict:
             return obj
-        return jm.dumps(obj)
+        return jm.dumps(obj, indent=2)
 
 
 class Meta():

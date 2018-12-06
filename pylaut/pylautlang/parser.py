@@ -5,16 +5,19 @@ from pylaut.language.phonology.phone import Phone
 from pylaut.language.phonology.phonology import Phoneme
 from pylaut.language.phonology.word import Syllable
 from pylaut.change.change import Change, This, ChangeGroup
-from pylaut.change.languagetree import SoundLaw
+from pylaut.change.languagetree import SoundLaw, SoundLawGroup
 from pylaut.change.change_functions import replace_phonemes, change_feature
 from pylaut.pylautlang.lib import make_predicate
 import functools as ft
+import os
 
 import pdb
 
+
 def get_parser():
-    pllg = Lark(get_data("pylaut", "data/pylautlang.g").decode("utf-8"),
-                propagate_positions=True)
+    pllg = Lark(
+        get_data("pylaut", "data/pylautlang.g").decode("utf-8"),
+        propagate_positions=True)
     return pllg
 
 
@@ -69,53 +72,142 @@ class PyLautLang(Transformer):
         return change
 
     def start(self, l):
-        nl = [c for c in l if isinstance(c, Change)]
-        return nl
+        return l
 
     def meta(self, args):
-        return ('meta', args[0], args[1])
+        return ('META', args[0], args[1])
 
-    def block(self, args):
+    def block(self, children):
+        args = []
+        this_repr = ["BEGIN"]
+
+        for repr, c in children:
+            c.label = repr
+            args.append(c)
+            this_repr.append(repr)
+        this_repr.append("END")
+        return ("\n".join(this_repr), args)
+
+    def group_block(self, args):
         return args
 
-    @lark.v_args(meta=True)
-    def law(self, args, meta):
-        block = args[0]
-        for change in block:
-            pass
+    def law(self, args):
+        this_repr = []
+        block = args[-1]
+        name = None
+        description = None
+        date = None
+        changes = None
+        for meta in args[:-1]:
+            this_repr.append("META {} {}".format(meta[1], meta[2]))
+            varname = meta[1].lower()
+            if varname == 'name':
+                name = meta[2].value.strip('"')
+            elif varname == 'description':
+                description = meta[2]
+            elif varname == 'date':
+                date = meta[2]
+        this_repr.append(block[0])
+        changes = block[1]
+        if self.funcs is not None:
+            sc_lib_name = self.funcs['__name__']
+            sc_lib_version = self.funcs['__version__']
+        else:
+            sc_lib_name = None
+            sc_lib_version = None
+        return SoundLaw("\n".join(this_repr),
+                        changes,
+                        date,
+                        sc_lib=self.funcs,
+                        sc_lib_name=sc_lib_name,
+                        sc_lib_version=sc_lib_version,
+                        name=name,
+                        description=description
+                        )
 
-    @lark.v_args(meta=True)
-    def group(self, args, meta):
-        pdb.set_trace()
-        pass
+    def group(self, args):
+        this_repr = []
+        block = args[-1]
+        name = None
+        description = None
+        date = None
+        changes = []
+        for meta in args[:-1]:
+            this_repr.append("META {} {}".format(meta[1], meta[2]))
+            varname = meta[1].lower()
+            if varname == 'name':
+                name = meta[2].value.strip('"')
+            elif varname == 'description':
+                description = meta[2]
+            elif varname == 'date':
+                date = meta[2]
+        this_repr.append(block[0])
+        for change in block[1:]:
+            changes.append(change)
+        if self.funcs is not None:
+            sc_lib_name = self.funcs['__name__']
+            sc_lib_version = self.funcs['__version__']
+        else:
+            sc_lib_name = None
+            sc_lib_version = None
+        return SoundLawGroup(changes,
+                        date,
+                        sc_lib=self.funcs,
+                        sc_lib_name=sc_lib_name,
+                        sc_lib_version=sc_lib_version,
+                        name=name,
+                        description=description
+                        )
 
     def phoneme(self, l):
         pl = phoneme_list_from_string(l[0])
-        return pl
+        return (l[0], pl)
 
     def phoneme_list(self, l):
+        this_repr_raw = []
+        args = []
         if len(l) == 1:
             return l[0]
-        return tuple(l)
+        for repr, c in l:
+            this_repr_raw.append(repr)
+            args.append(tuple(c))
+
+        this_repr = "{" + ", ".join(this_repr_raw) + "}"
+        return (this_repr, tuple(args))
 
     def simple_unconditional(self, args):
-        domain = args[0]
-        codomain = args[1]
-        return replace_phonemes(domain, codomain)
+        domain = args[0][1]
+        codomain = args[1][1]
+        this_repr = "{} -> {}".format(args[0][0], args[1][0])
+        return (this_repr, replace_phonemes(domain, codomain))
 
     def multiple_unconditional(self, args):
-        return ChangeGroup(
-            [replace_phonemes(d, c) for d, c in zip(args[0], args[1])])
+        this_repr = "{} -> {}".format(args[0][0], args[1][0])
+        domain, codomain = args[0][1], args[1][1]
+
+        ch = ChangeGroup(
+            [replace_phonemes(d, c) for d, c in zip(domain, codomain)])
+        return (this_repr, ch)
 
     def change_feature(self, args):
-        domain, codomain = args
+        this_repr = "{} -> {}".format(args[0][0], args[1][0])
+        domain, codomain = args[0][1], args[1][1]
         ch = Change()
         for name, value in codomain:
             ch = ch.do(lambda p: change_feature(p, name, value))
-        return ch
+
+        def match_features(p, fdict=domain):
+            for name, value in domain:
+                if not p.feature_is(name, value):
+                    return False
+            return True
+
+        ch = ch.to(This.forall(Phone)(match_features))
+        return (this_repr, ch)
 
     def replace_by_feature(self, args):
-        domain, codomain = args
+        this_repr = "{} -> {}".format(args[0][0], args[1][0])
+        domain, codomain = args[0][1], args[1][1]
         conditions = []
         for name, value in domain.items():
 
@@ -125,15 +217,22 @@ class PyLautLang(Transformer):
             conditions.append(has_feature)
         ch = Change().do(lambda p: codomain).to(
             This.forall(Phone)(lambda p, c=conditions: all(f(p) for f in c)))
-        return ch
+        return (this_repr, ch)
 
     def and_condition(self, args):
-        return (True, args[0])
+        return ("& {}".format(args[0][0]), (True, args[0]))
 
     def or_condition(self, args):
-        return (False, args[0])
+        return ("| {}".format(args[0][0]), (False, args[0][1]))
 
-    def condition_list(self, args):
+    def condition_list(self, children):
+        args = []
+        this_repr = []
+
+        for repr, c in children:
+            args.append(c)
+            this_repr.append(repr)
+
         and_conditions = []
         or_conditions = []
         for sigil, condition in args:
@@ -159,42 +258,67 @@ class PyLautLang(Transformer):
 
             return run_ac() and run_oc()
 
-        return predicate
+        return ("\n".join(this_repr), predicate)
 
     def basic_conditional(self, args):
-        base_change = args[0]
-        condition = args[1]
+        change_repr = args[0][0]
+        cond_repr = args[1][0]
+
+        base_change = args[0][1]
+        condition = args[1][1]
         if isinstance(base_change, list):
             new_change = list(map(lambda c: c.when(condition), base_change))
         else:
             new_change = base_change.when(condition)
-        return new_change
+        return (" ".join((change_repr, cond_repr)), new_change)
 
-    def simple_conditional(self, args):
+    def simple_conditional(self, children):
         changes = []
-        domain = args[0]
-        default = args[-1]
+        this_repr = []
+
+        for repr, _ in children:
+            this_repr.append(repr)
+
+        domain = children[0]
+        default = children[-1]
         for (codomain,
-             condition) in zip(*[args[1:-2][i::2] for i in range(2)]):
-            ch = self.simple_unconditional([domain, codomain]).when(condition)
+             condition) in zip(*[children[1:-2][i::2] for i in range(2)]):
+            cond = condition[1]
+            label, ch = self.simple_unconditional([domain, codomain])
+            ch = ch.when(cond)
             changes.append(ch)
         changes.append(self.simple_unconditional([domain, default]))
-        return ChangeGroup(changes)
+        return ("\n".join(this_repr), ChangeGroup(changes))
 
-    def multiple_conditional(self, args):
+    def multiple_conditional(self, children):
         changes = []
-        domain = args[0]
-        default = args[-1]
+        args = []
+        this_repr = []
+
+        for repr, c in children:
+            args.append(c)
+            this_repr.append(repr)
+
+        domain = children[0]
+        default = children[-1]
         for (codomain,
-             condition) in zip(*[args[1:-2][i::2] for i in range(2)]):
-            ch = self.multiple_unconditional([domain,
-                                              codomain]).when(condition)
+             condition) in zip(*[children[1:-2][i::2] for i in range(2)]):
+            _, ch = self.multiple_unconditional([domain,
+                                                 codomain])
+            ch = ch.when(condition)
             changes.append(ch)
         changes.append(self.multiple_unconditional([domain, default]))
-        return ChangeGroup(changes)
+        return ("\n".join(this_repr), ChangeGroup(changes))
 
-    def change_feature_conditional(self, args):
+    def change_feature_conditional(self, children):
         changes = []
+        args = []
+        this_repr = []
+
+        for repr, c in children:
+            args.append(c)
+            this_repr.append(repr)
+
         domain = args[0]
         default = args[-1]
         for (codomain,
@@ -202,11 +326,20 @@ class PyLautLang(Transformer):
             changes += self.simple_conditional(
                 [self.simple_unconditional([domain, codomain]), condition])
             changes.append(self.simple_unconditional([domain, default]))
-        return changes
+        return ("\n".join(this_repr), changes)
 
     def relative_expr(self, args):
         conditions = []
         this = args.index("_")
+        this_repr = []
+        for i in range(len(args)):
+            if not isinstance(args[i], str):
+                arg_repr = args[i][0]
+                args[i] = args[i][1]
+            else:
+                arg_repr = args[i]
+            this_repr.append(arg_repr)
+
         for i in range(len(args)):
             pos = i - this
             arg = args[i]
@@ -244,10 +377,11 @@ class PyLautLang(Transformer):
                     return False
             return True
 
-        return run_conditions
+        return ("".join(this_repr), run_conditions)
 
     def inexpr(self, args):
-        current_position = args[0]
+        current_position = args[0][1]
+        this_repr = "in {}".format(args[0][0])
 
         def is_in_position(td, get_current_position=current_position):
             cpos = get_current_position(td)
@@ -258,27 +392,32 @@ class PyLautLang(Transformer):
             else:
                 return False
 
-        return is_in_position
+        return (this_repr, is_in_position)
 
     def ifexpr(self, args):
         # must only have one argument, a predicate on a transducer
-        return args[0]
+        return ("if {}".format(args[0][0]), args[0][1])
 
     def isexpr(self, args):
-        entity = args[0]
-        value = args[1]
+        entity_repr = args[0][0]
+        value_repr = args[0][0]
+        this_repr = "{} is {}".format(entity_repr, value_repr)
+
+        entity = args[0][1]
+        value = args[1][1]
         pred = make_predicate(value)
 
         def is_true(td, f=entity, pred=pred):
             return pred(f(td))
 
-        return is_true
+        return (this_repr, is_true)
 
     def index(self, args):
         counter = args[0]
         raw_pos = args[1]
         if isinstance(raw_pos, tuple):
             position = int(raw_pos[1])
+            this_repr = "{}[@{}]".format(counter, position)
             if counter == "Syllable":
 
                 def get_at_syllable_offset(this, p=position):
@@ -288,7 +427,7 @@ class PyLautLang(Transformer):
                     return this.syllables[this.syllables.index(this.syllable) +
                                           p]
 
-                return get_at_syllable_offset
+                return (this_repr, get_at_syllable_offset)
             elif counter == "Phone":
 
                 def get_at_phoneme_offset(this, p=position):
@@ -297,9 +436,10 @@ class PyLautLang(Transformer):
                         return None
                     return this.phonemes[this.phonemes.index(this.phoneme) + p]
 
-                return get_at_phoneme_offset
+                return (this_repr, get_at_phoneme_offset)
         else:
             position = int(raw_pos)
+            this_repr = "{}[{}]".format(counter, position)
             if counter == "Syllable":
 
                 def get_at_syllable_index(this, p=position):
@@ -307,7 +447,7 @@ class PyLautLang(Transformer):
                         return None
                     return this.syllables[p]
 
-                return get_at_syllable_index
+                return (this_repr, get_at_syllable_index)
             elif counter == "Phone":
 
                 def get_at_phoneme_index(this, p=position):
@@ -315,7 +455,7 @@ class PyLautLang(Transformer):
                         return None
                     return this.phonemes[p]
 
-                return get_at_phoneme_index
+                return (this_repr, get_at_phoneme_index)
 
     def offset(self, args):
         os = args[0]
@@ -324,12 +464,20 @@ class PyLautLang(Transformer):
     def member(self, args):
         entity = args[0]
         field = args[1]
+        if isinstance(entity, str):
+            entity_repr = entity
+        else:
+            entity_repr = entity[0]
+            entity = entity[1]
+
+        this_repr = ".".join((entity_repr, field))
+
         if field == 'nucleus':
-            return lambda td, f=entity: f(td).get_nucleus()
+            ret = lambda td, f=entity: f(td).get_nucleus()
         elif field == 'onset':
-            return lambda td, f=entity: f(td).get_onset()
+            ret = lambda td, f=entity: f(td).get_onset()
         elif field == 'coda':
-            return lambda td, f=entity: f(td).get_coda()
+            ret = lambda td, f=entity: f(td).get_coda()
         elif field == 'quality':
 
             def get_vowel_quality(td, f=entity):
@@ -343,15 +491,21 @@ class PyLautLang(Transformer):
                 vowel.set_symbol_from_features()
                 return vowel
 
-            return get_vowel_quality
+            ret = get_vowel_quality
         else:
             raise ParseError("Unknown field {}!".format(field))
 
+        return (this_repr, ret)
+
     def feat_expr(self, args):
         ret = dict()
+        rep = []
         for a in flatten(args):
             ret[a[0]] = a[1]
-        return ret
+        for k, v in ret.items():
+            rep.append("".join((v, k)))
+        rep = " ".join(rep)
+        return (rep, ret)
 
     def pos_feature(self, args):
         return [(f, "+") for f in flatten(args)]
@@ -362,12 +516,18 @@ class PyLautLang(Transformer):
     def words(self, args):
         return args
 
-    def fcall(self, args):
-        fname = args[0]
+    def fcall(self, children):
+        fname = children[0]
+        args = []
+        this_repr = []
+        for repr, c in children[1:]:
+            this_repr.append(repr)
+            args.append(c)
         try:
-            return self.funcs[fname](*args[1:])
+            return ("{}({})".format(fname, ", ".join(this_repr)),
+                    self.funcs[fname](*args))
         except KeyError:
-            return Change()
+            return ("Nop()", Change())
 
     def eqexpr(self, args):
         @ft.singledispatch
@@ -382,4 +542,7 @@ class PyLautLang(Transformer):
         def _(left: type(None), right):
             return False
 
-        return lambda td, args=args: run_equality(args[0](td), args[1](td))
+        this_repr = "{} = {}".format(args[0][0], args[1][0])
+        def ret(td, args=args):
+            return run_equality(args[0][1](td), args[1][1](td))
+        return (this_repr, ret)
