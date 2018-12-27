@@ -98,6 +98,9 @@ def merge(phonemes, target):
 def epenthesis(this, phoneme):
     p = make_predicate(this)
 
+    if len(phoneme) == 1:
+        phoneme = phoneme[0]
+
     def epenthesize(td, p=p, t=phoneme):
         if p(td.phoneme):
             cur_idx = td.phonemes.index(td.phoneme)

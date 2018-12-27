@@ -16,10 +16,6 @@ law: ("CHANGE"|"change") (meta)* block
 group_block: ("BEGIN"|"begin") (law)* ("END"|"end")
 group: ("GROUP"|"group") (meta)* group_block
 
-phoneme: "/" PHONEME_STR "/"
-phoneme_list: "{" (phoneme ",")* phoneme "}"
-?value: phoneme | phoneme_list | feat_expr
-?expr: value | fcall
 ?change: unconditional
     | basic_conditional
     | conditional
@@ -33,12 +29,15 @@ conditional: phoneme ("=>" phoneme condition_list)+ "=>" phoneme -> simple_condi
     | phoneme_list ("=>" phoneme_list condition_list)+ "=>" phoneme_list -> multiple_conditional
     | feat_expr ("=>" feat_expr condition_list)+ "=>" feat_expr -> change_feature_conditional
     | feat_expr ("=>" phoneme condition_list)+ "=>" phoneme -> replace_by_feature_conditional
+
 condition_list: (condition)+
 condition: "&" condition_body -> and_condition
     | "|" condition_body -> or_condition
-?condition_body: relative_expr
+?condition_expr: relative_expr
     | inexpr
     | ifexpr
+condition_body: condition_expr -> positive_condition
+    | "!" condition_expr -> negative_condition
 relative_expr: [BOUNDARY] value* RELATIVE value* [BOUNDARY]
 inexpr: "in" entity
 ifexpr: "if" boolexpr
@@ -47,10 +46,17 @@ isexpr: entity "is" value
 bopexpr: (entity | value) "=" (entity | value) -> eqexpr
 //    | (entity | value) ">" (entity | value) -> gtexpr
 //    | (entity | value) "<" (entity | value) -> ltexpr
+
+?value: phoneme | phoneme_list | feat_expr
+?expr: value | fcall
+
+phoneme: "/" PHONEME_STR "/"
+phoneme_list: "{" (phoneme ",")* phoneme "}"
 feat_expr: "[" finner+ "]"
-words: (WORD ",")* WORD
 finner: "+" words -> pos_feature
     |   "-" words -> neg_feature
+words: (WORD ",")* WORD
+
 fcall: IDENTIFIER "(" (value ",")* [value] ")"
 index: entity "[" indexer "]"
 member: entity "." IDENTIFIER
@@ -58,10 +64,9 @@ member: entity "." IDENTIFIER
 offset: "@" SIGNED_INT
 ?indexer: SIGNED_INT | offset
 
-
 IDENTIFIER: ("_"|LETTER) ("_"|LETTER|DIGIT)*
 PHONEME_STR: /[^\/\\\_\n\t\[\]]+/
-COMMENT: /%[^\n]*/
 BOUNDARY: "#"
 RELATIVE: "_"
+COMMENT: /%[^\n]*/
 %ignore COMMENT

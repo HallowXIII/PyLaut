@@ -6,6 +6,7 @@ from pylaut.language.phonology.phone import Phone
 from pylaut.language.phonology.phonology import Phoneme, Phonology
 from pylaut.language.phonology.word import Syllable, Word, WordFactory
 
+import pdb
 
 class Contour(Phoneme):
     def __init__(self, plist):
@@ -75,11 +76,11 @@ def sequence_to_contour(w: Word, seq: List[Phoneme]) -> Word:
     return w
 
 
-def change_feature(phone: Phone, name: str, value: bool) -> Phone:
+def change_feature(phone: Phone, name: str, value: str) -> Phone:
     np = deepcopy(phone)
-    if value:
+    if value == '+':
         np.set_features_true(name)
-    else:
+    elif value == '-':
         np.set_features_false(name)
     np.set_symbol_from_features()
     return np

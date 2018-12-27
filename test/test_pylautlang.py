@@ -33,7 +33,6 @@ def get_word_factory():
 
 def transform_martial():
     f = get_scfile()
-    l = get_lexicon()
     p = get_parser()
     t = p.parse(f)
     # wf = get_word_factory()
@@ -46,14 +45,20 @@ def transform_martial():
     return t, tt
 
 def main():
+    l = get_lexicon()
     t, tt = transform_martial()
     print(t.pretty())
     print(tt)
 
     # manual_changes = shaptoem.get_changes()
-
-    # l1 = [wf.make_word(w) for w in l]
+    wf = WordFactory()
+    l1 = [wf.make_word(w) for w in l]
     # l2 = [wf.make_word(w) for w in l]
+    for w in l1:
+        nw = w
+        for change in tt:
+            nw = change.apply(nw)
+        print("Auto: {} -> {}".format(w, nw))
     # for w1, w2 in zip(l1, l2):
     #     nw1 = w1
     #     nw2 = w2

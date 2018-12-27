@@ -1,7 +1,7 @@
-from pylaut.change import Change, This, Transducer
+from pylaut.change.change import Change, This, Transducer
 from pylaut.phone import Phone
 from pylaut.phonology import Phonology, Phoneme
-from pylaut.word import Word, WordFactory, Syllable
+from pylaut.language.phonology.word import Word, WordFactory, Syllable
 from pylaut.change_functions import (before_stress, delete_phonemes,
                                      change_feature)
 

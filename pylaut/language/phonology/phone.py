@@ -255,7 +255,7 @@ class Phone(object):
                         elif dc_val == Phone._FALSE_FEATURE:
                             self.set_features_false(dc_feat)
                         else:
-                            self.seat_features_null(dc_feat)
+                            self.set_features_null(dc_feat)
                 except KeyError:
                     raise KeyError(
                         " {}  not found in IPA lookup.".format(char))

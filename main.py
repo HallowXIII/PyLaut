@@ -7,12 +7,13 @@ import os
 import pathlib
 
 from pylaut.change import languagetree as lt
+from pylaut.pylautlang import parser
 
-commands = ["init", "node"]
+commands = ["init", "node", "simulate"]
 
 
-def _hamming_candidate():
-    pass
+def _hamming_candidate(name, commands):
+    return "dummy"
 
 
 def _create_languagetree_node(name,
@@ -44,9 +45,16 @@ def _create_languagetree_node(name,
             with open(parent_json) as pjs:
                 parent = lt.LanguageTree.from_json(pjs.read())
                 this_meta = parent.meta
+                this_meta.change_file_name = '{}.sc'.format(name)
     else:
         this_meta = meta
 
+    cfp = this_data_path / this_meta.config_file_name
+    scp = this_data_path / this_meta.change_file_name
+    lxp = this_data_path / this_meta.lexicon_file_name
+    cfp.touch()
+    scp.touch()
+    lxp.touch()
     node = lt.LanguageTree(meta=this_meta, name=name, date=date)
     return node
 
@@ -69,7 +77,7 @@ def init(name, path=None, existing=False):
         dp.mkdir(exist_ok=True)
         lt = _create_languagetree_node(name, 0, name, pp, pp / 'data')
         with open(fp, 'w') as jsonf:
-            jsonf.write(lt.json())
+            jsonf.write(lt.to_json())
         return ["Successfully initialized new language tree in {}".format(pp)]
     else:
         return [
@@ -77,26 +85,81 @@ def init(name, path=None, existing=False):
         ]
 
 
-@plac.annotations()
+@plac.annotations(
+    parent=('The name of the parent node.'),
+    name=('The name of the node to create.'),
+    date=('The date at which the stage is considered to have begun.'),
+    project_path=(
+        'The path to the project folder (defaults to current directory).'))
 def node(parent: str, name: str, date: int, project_path='.'):
     "Create a new child language under an existing one."
     pp = pathlib.Path(project_path).resolve()
     parent_path = pp / '{}.json'.format(parent)
+    project_name = pp.name
     if not pp.exists():
         return [
-            "Could not find project: {}.",
+            "Could not find project: {}.".format(project_name),
             " Did you forget to specify a project path?"
         ]
-    with parent_path.open() as pjs:
-        parent = lt.LanguageTree.from_json(pjs.read())
-    project_name = project_path.name()
     child = _create_languagetree_node(
         name, date, project_name, project_path, parent=parent)
     cpath = pp / '{}.json'.format(name)
     with cpath.open('w') as cjs:
-        cjs.write(child.json())
+        cjs.write(child.to_json())
 
-    return ["Added child node {} to node {}".format(name, parent.name)]
+    return ["Added child node {} to node {}".format(name, parent)]
+
+
+@plac.annotations(
+    parent=('The name of the parent node.'),
+    language=('The name of the node to simulate.'),
+    date=('The date at which the stage is considered to have begun.'),
+    project_path=(
+        'The path to the project folder (defaults to current directory).'))
+def simulate(parent: str, language: str, date=None, project_path='.'):
+    "Simulate the sound changes defined for a certain language."
+    pp = pathlib.Path(project_path).resolve()
+    project_name = pp.name
+    if not pp.exists():
+        return [
+            "Could not find project: {}.".format(project_name),
+            " Did you forget to specify a project path?"
+        ]
+    parent_path = pp / '{}.json'.format(parent)
+    language_path = pp / '{}.json'.format(language)
+    with parent_path.open() as pjs:
+        parent_tree = lt.LanguageTree.from_json(pjs.read())
+    with language_path.open() as ljs:
+        language_tree = lt.LanguageTree.from_json(ljs.read())
+
+    scp = pathlib.Path(
+        language_tree.meta.data_path) / language_tree.meta.change_file_name
+    lexp = pathlib.Path(
+        parent_tree.meta.data_path) / parent_tree.meta.lexicon_file_name
+    new_lexp = pathlib.Path(
+        language_tree.meta.data_path) / language_tree.meta.lexicon_file_name
+    with lexp.open() as lexf:
+        lex = lexf.read()
+    with scp.open() as scf:
+        sc = scf.read()
+    changes = parser.compile(sc)
+    words = []
+    new_words = []
+    for line in lex:
+        if line.startswith('#'):
+            continue
+        else:
+            word = line.split()
+            words.append(word)
+    for word in words:
+        for ch in changes:
+            word[0] = ch.apply(word[0])
+        new_words.append(word)
+    with new_lexp.open() as nlf:
+        strw = [str(word) for word in new_words]
+        nlf.write("\n".join(strw))
+
+    return ['Simulation successful.']
 
 
 def __exit__(etype, exc, tb):
