@@ -13,6 +13,6 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 script:
-  - pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning --cov=src/
+  - pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning --cov=pylaut/
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

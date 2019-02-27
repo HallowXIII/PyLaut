@@ -12,7 +12,7 @@ def test_load_from_package():
 
 
 def test_load_from_folder():
-    f = featureset.FeatureModel('monophone', '.')
+    f = featureset.FeatureModel('monophone', 'pylaut/data')
     assert f.features == [
         'syllabic', 'consonantal', 'continuant', 'sonorant', 'nasal', 'labial',
         'dental', 'apical', 'coronal', 'dorsal', 'voice', 'trill', 'flap',
