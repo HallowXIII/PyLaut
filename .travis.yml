@@ -2,6 +2,7 @@ env:
   global:
     - CC_TEST_REPORTER_ID=f72307026db7f469cbf8a2056a38e81ac2d0c5d5c8e9e889c2b3a2b2e74e6039
 language: python
+dist: xenial
 python:
   - "3.6"
   - "3.7"
@@ -13,6 +14,6 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 script:
-  - pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning --cov=pylaut/
+  - pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning --cov=pylaut/ --cov-report xml
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
