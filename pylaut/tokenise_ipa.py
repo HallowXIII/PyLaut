@@ -1,6 +1,6 @@
 from itertools import tee
 from pkgutil import get_data
-import pdb
+from pylaut import utils
 
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
@@ -21,10 +21,8 @@ def tokenise_ipa(s, feature_set=None):
     else:
         diacritics = feature_set._feature_set_ipa_diacritics.keys()
 
-    syllable_bounds = "'."
-
-    s = s.replace("'",".'")
-    sl = s.split(".")
+    s = utils.replace(s, "'", ".'")
+    sl = utils.split(s, ".")
 
     tokens = []
 
