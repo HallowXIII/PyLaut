@@ -1,14 +1,27 @@
-from pylaut.phone import MonoPhone
-from pylaut.phonology import Phonology, Phoneme
-from pylaut.utils import breakat, powerset, split, replace
-from copy import deepcopy
-import itertools
-import sys
-from typing import Optional
-from lingpy.sequence.sound_classes import syllabify
+"""
+Module defining classes to deal with phonologically contiguous sequences of
+Phones. In particular these are a Syllable class, a Word class and a factory
+class for producing them. These are important for the sound change machinery
+as well as any eventual automagical phonological analysis.
+"""
 
+from copy import deepcopy
+from typing import Optional
+
+import lingpy.sequence.sound_classes as lingpy
+
+from pylaut.language.phonology.phonology import Phonology, Phoneme
+from pylaut.utils import replace, split
+from pylaut.tokenise_ipa import tokenise_ipa
+
+import pdb
 
 class Syllable(object):
+    """
+    A class that models a Syllable. This concept is somewhat tricky to define
+    cross-linguistically, but as far as we are concerned, it is a sonority peak
+    surrounded optionally by less sonorous phonemes.
+    """
     def __init__(self, phonemes):
         self.phonemes = [p for p in phonemes if p is not None]
         self.stressed = False
@@ -101,7 +114,9 @@ class Syllable(object):
     def find_nuclei(self):
         """
         Finds all possible nuclei in the syllable. So far, has problems
-        dealing with things that aren"t easy and unambiguous.
+        dealing with things that aren't easy and unambiguous. Additionally,
+        this relies on phonemes knowing their own sonority, which may be an
+        architectural problem in the future.
         """
         sonorities = [(ph, ph.get_sonority()) for ph in self.phonemes]
         #check to see if there are phones w/ sonorities >= 10
@@ -123,9 +138,10 @@ class Syllable(object):
                 try:
                     if i > 0 and sonorities[i - 1][1] == n[1]:
                         sonorities[i] = None
+                        sonorities = [x for x in sonorities if x]
+                        break
                 except TypeError:
                     continue
-                sonorities = [x for x in sonorities if x]
 
         #return ns in the list
         return [x[0] for x in sonorities if x[1] == maximum_sonority]
@@ -326,14 +342,18 @@ class Word(object):
 class WordFactory(object):
     """
     Makes Words.
-    Needs to be initialised with a Phonology.
-    make_words takes an IPA string, syllables delimited with <.> or <"> if stressed 
-    and outputs a Word, composed of Syllables.
+    Can be initialized either with a Phonology or a pure Phoneme class.
+    In the first case, it will create Phonemes according to the Phonology's
+    Phoneme class.
+    Does not use any Phonology-specific features yet.
     """
 
-    def __init__(self, phonology):
+    def __init__(self, phonology=None, phoneme_cls=Phoneme):
         self.phonology = phonology
-        self.phoneme_dict = self.phonology.get_phoneme_dictionary()
+        if self.phonology:
+            self.phoneme_cls = phonology.phoneme_cls
+        else:
+            self.phoneme_cls = phoneme_cls
 
     def make_syllable(self, segs):
         proto_syl = []
@@ -345,7 +365,7 @@ class WordFactory(object):
             else:
                 return None
         for ipa_seg in segs:
-            proto_syl += [self.phoneme_dict[ipa_seg].copy()]
+            proto_syl += [self.phoneme_cls(ipa_seg)]
         syl = Syllable(proto_syl)
         if stressed:
             syl.set_stressed()
@@ -355,14 +375,16 @@ class WordFactory(object):
         #turn ' into .' to allow splitting into syllables
         #what about ˌ ?
         raw_word = replace(raw_word, "'", ".", "'")
-        raw_syllables = [syl for syl in split(raw_word, ".") if syl]
+        raw_word = replace(raw_word, "ˈ", ".", "ˈ")
+        # raw_syllables = [syl for syl in split(raw_word, ".") if syl]
+        raw_syllables = tokenise_ipa(raw_word)
         syllables = []
         for rs in raw_syllables:
             syl = []
             stressed = False
 
             #if there is a "'", this syllable has stress
-            if rs[0] == "'":
+            if rs[0] in ["'", "ˈ"]:
                 stressed = True
 
             #TODO identify diacritics
@@ -374,7 +396,7 @@ class WordFactory(object):
                 proto_rs = rs
 
             for ipa_char in proto_rs:
-                proto_syl += [self.phoneme_dict[ipa_char].copy()]
+                proto_syl += [self.phoneme_cls(ipa_char)]
             syl = Syllable(proto_syl)
             if stressed:
                 syl.set_stressed()
@@ -385,7 +407,7 @@ class WordFactory(object):
         return word
 
     def fromlist(self, seglist):
-        syllabified = syllabify(seglist, sep='.')
+        syllabified = lingpy.syllabify(seglist, sep='.')
         return self.make_word(syllabified)
 
 

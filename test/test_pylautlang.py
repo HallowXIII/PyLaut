@@ -1,62 +1,128 @@
-from pkgutil import get_data
-from pylaut.phone import Phone
-from pylaut.phonology import Phonology, Phoneme
-from pylaut.word import Word, WordFactory, Syllable
-from pylaut.parser import get_parser, PyLautLang
-from pylaut.pylautlanglib import get_library
-from pylaut.change_functions import Resyllabify
+from pylaut.language.phonology import word
+from pylaut.pylautlang import parser
 
-import shaptoem
+import pytest
 
-def get_scfile():
-    with open("martial.sc") as scfile:
-        sc = scfile.read()
-    return sc
+@pytest.fixture
+def wf():
+    return word.WordFactory()
 
-
-def get_lexicon():
-    with open("shap.lex") as lexfile:
-        lexicon = lexfile.readlines()
-        lexicon = [s.strip() for s in lexicon]
-    return lexicon
+def test_simple_unconditional(wf):
+    sc = parser.compile("CHANGE BEGIN /a/ -> /e/ END")[0]
+    w = wf.make_word("'at.na")
+    nw = sc.apply(w)
+    assert repr(nw) == "/'et.ne/"
 
 
-def get_word_factory():
-    phonemes = ["p", "t", "k",
-                "b", "d", "ɡ",
-                "m", "n", "ŋ",
-                "f", "θ", "h", "s", "z", "ʃ",
-                "r", "l",
-                "i", "e", "o", "u", "ɯ", "ə", "a", "ɒ",
-                "iː", "eː", "oː", "uː", "ɯː", "əː", "aː", "ɒː"]
-    phonology = Phonology(phonemes)
-
-    return WordFactory(phonology)
-
-def main():
-    f = get_scfile()
-    l = get_lexicon()
-
-    wf = get_word_factory()
-    library = get_library()
-    library["Resyllabify"] = lambda *_: Resyllabify(wf=wf)
-    pl = PyLautLang(library)
-    tt = pl.compile(f)
-
-    manual_changes = shaptoem.get_changes()
-
-    l1 = [wf.make_word(w) for w in l]
-    l2 = [wf.make_word(w) for w in l]
-    for w1, w2 in zip(l1, l2):
-        nw1 = w1
-        nw2 = w2
-        for change in tt:
-            nw1 = change(nw1)
-        print("Auto: {} -> {}".format(w1, nw1))
-        # for change in manual_changes:
-        #     nw2 = change(nw2)
-        # print("Manual: {} -> {}".format(w2, nw2))
+def test_multiple_unconditional(wf):
+    sc = parser.compile("CHANGE BEGIN {/b/,/d/,/ɡ/} -> {/β/,/ð/,/ɣ/} END")[0]
+    w = wf.make_word("ba'ɡo.dam")
+    nw = sc.apply(w)
+    assert repr(nw) == "/βa.'ɣo.ðam/"
 
 
-if __name__ == "__main__":
-    main()
+def test_change_feature(wf):
+    sc = parser.compile("CHANGE BEGIN [+sibilant] -> [+voice] END")[0]
+    w = wf.make_word("ma'sa.la")
+    nw = sc.apply(w)
+    assert repr(nw) == "/ma.'za.la/"
+
+
+def test_replace_by_feature(wf):
+    sc = parser.compile("CHANGE BEGIN [+sibilant] -> /h/ END")[0]
+    w = wf.make_word("ma'sa.la")
+    nw = sc.apply(w)
+    assert repr(nw) == "/ma.'ha.la/"
+
+
+def test_basic_conditional_sound_change_with_relexp(wf):
+    sc = parser.compile("CHANGE BEGIN /a/ -> /e/ | _[+front] END")[0]
+    w = wf.make_word("ko'raj.ka")
+    nw = sc.apply(w)
+    assert repr(nw) == "/ko.'rej.ka/"
+
+
+def test_simple_conditional_with_relexp(wf):
+    sc = parser.compile("""
+    CHANGE BEGIN
+      /a/ => /e/ | _[+front]
+          => /o/
+    END
+    """)[0]
+    w = wf.make_word("ko'raj.ka")
+    nw = sc.apply(w)
+    assert repr(nw) == "/ko.'rej.ko/"
+
+
+def test_multiple_conditional_with_relexp(wf):
+    sc = parser.compile("""
+    CHANGE BEGIN
+      {/a/, /aː/} => {/e/, /eː/} | _[+front]
+                  => {/ə/, /oː/}
+    END
+    """)[0]
+
+    word1 = wf.make_word("ka.laj'kaː")
+    word2 = wf.make_word("paː'jet.na")
+    nw1 = sc.apply(word1)
+    nw2 = sc.apply(word2)
+
+    assert repr(nw1) == "/kə.lej.'koː/"
+    assert repr(nw2) == "/peː.'jet.nə/"
+
+
+def test_change_feature_conditional_with_relexp(wf):
+    sc = parser.compile("""
+    CHANGE BEGIN
+      [+sibilant] => [+voice]    | [-consonantal]_[-consonantal]
+                  => [+front]    | _[-consonantal +front]
+                  => [+sibilant]
+    END
+    """)[0]
+
+    w1 = wf.make_word("mak'si.ra")
+    w2 = wf.make_word("ma'sa.la")
+    w3 = wf.make_word("pe'si.ka")
+    w4 = wf.make_word("sa'mo.ŋe")
+
+    nws = [repr(sc.apply(w)) for w in [w1, w2, w3, w4]]
+    assert nws == ["/mak.'ɕi.ra/", "/ma.'za.la/", "/pe.'ʑi.ka/", "/sa.'mo.ŋe/"]
+
+
+def test_replace_by_feature_conditional_with_relexp(wf):
+    sc = parser.compile("""
+    CHANGE BEGIN
+      [+sibilant] => /0/ | [-consonantal]_[-consonantal]
+                  => /h/
+    END
+    """)[0]
+
+    words = [wf.make_word(w) for w in ["sa.lo.ka", "ke.se.nam", "pas.ko.ne",
+                                       "lak.si.nam", "a.tas"]]
+    new_words = [repr(sc.apply(w)) for w in words]
+    assert new_words == ["/ha.lo.ka/", "/ke.e.nam/", "/pah.ko.ne/",
+                         "/lak.hi.nam/", "/a.tah/"]
+
+
+def test_word_break_initial_in_relexp(wf):
+    sc = parser.compile("CHANGE BEGIN /o/ -> /we/ | #_ END")[0]
+    words = [wf.make_word(w) for w in ["ok.to", "a.po.lo", "te.o.lo", "kon.dre.lo"]]
+    new_words = [repr(sc.apply(w)) for w in words]
+    assert new_words == ["/wek.to/", "/a.po.lo/", "/te.o.lo/",
+                         "/kon.dre.lo/"]
+
+
+def test_word_break_final_in_relexp(wf):
+    sc = parser.compile("CHANGE BEGIN /o/ -> /u/ | _# END")[0]
+    words = [wf.make_word(w) for w in ["ok.to", "a.po.lo", "te.o.lo", "kon.dre.lo"]]
+    new_words = [repr(sc.apply(w)) for w in words]
+    assert new_words == ["/ok.tu/", "/a.po.lu/", "/te.o.lu/",
+                         "/kon.dre.lu/"]
+
+
+def test_compound_expression_with_word_break_in_relexp(wf):
+    sc = parser.compile("CHANGE BEGIN /o/ -> /we/ | #[+consonantal]_ END")[0]
+    words = [wf.make_word(w) for w in ["ok.to", "a.po.lo", "te.o.lo", "kon.dre.lo"]]
+    new_words = [repr(sc.apply(w)) for w in words]
+    assert new_words == ["/ok.to/", "/a.po.lo/", "/te.o.lo/",
+                         "/kwen.dre.lo/"]

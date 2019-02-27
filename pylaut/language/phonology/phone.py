@@ -1,5 +1,4 @@
 import json
-import sys
 from copy import deepcopy
 from os import path
 from pprint import pprint
@@ -55,7 +54,7 @@ class Phone(object):
 
     def feature_set_filename(self, dirname=None):
         if dirname is None:
-            here = path.join(path.abspath(path.dirname(__file__)), 'data/')
+            here = path.join(path.abspath(path.dirname(__file__)), '../../data/')
         else:
             here = dirname
         return path.join(here, self._FEATURE_SET_NAME)
@@ -107,7 +106,7 @@ class Phone(object):
         """
         Loads a feature set from file, sets the Phone's feature set to it and 
         reinits self.features /!\ clearing any existing features /!\
-        
+
         A feature set file is a plain text file, with the name of the feature set
         on the first line, with features given in []s each on its separate line
         """
@@ -255,7 +254,7 @@ class Phone(object):
                         elif dc_val == Phone._FALSE_FEATURE:
                             self.set_features_false(dc_feat)
                         else:
-                            self.seat_features_null(dc_feat)
+                            self.set_features_null(dc_feat)
                 except KeyError:
                     raise KeyError(
                         " {}  not found in IPA lookup.".format(char))

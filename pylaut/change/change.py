@@ -1,10 +1,11 @@
 from copy import deepcopy
 from functools import partial
-from pylaut.phone import Phone
-from pylaut.phonology import Phonology, Phoneme
-from pylaut.word import Word, WordFactory, Syllable
-from pylaut.utils import flatten_partial, mapwith, o
-import pdb
+
+from pylaut import utils
+from pylaut.language.phonology.phone import Phone
+from pylaut.language.phonology.phonology import Phoneme, Phonology
+from pylaut.language.phonology.word import Syllable, Word, WordFactory
+from pylaut.utils import flatten_partial, mapwith
 
 
 class This(object):
@@ -25,26 +26,30 @@ class This(object):
 
             def run_at_syllable(ch, p=pred):
                 idx = ch.syllables.index(ch.syllable)
-                if idx+position < 0:
+                if idx + position < 0:
                     return False
                 try:
-                    return p(ch.syllables[ch.syllables.index(ch.syllable) + position])
+                    return p(ch.syllables[ch.syllables.index(ch.syllable) +
+                                          position])
                 except IndexError:
                     return False
 
             return run_at_syllable
+
         elif kind == Phone:
 
             def run_at_phoneme(ch, p=pred):
                 idx = ch.phonemes.index(ch.phoneme)
-                if idx+position < 0:
+                if idx + position < 0:
                     return False
                 try:
-                    return p(ch.phonemes[ch.phonemes.index(ch.phoneme) + position])
+                    return p(
+                        ch.phonemes[ch.phonemes.index(ch.phoneme) + position])
                 except IndexError:
                     return False
 
             return run_at_phoneme
+
         else:
             raise ValueError("Unknown position type")
 
@@ -165,18 +170,18 @@ class Change(object):
 
         Args:
             fetcher: A curried function that, given a transducer and two
-                functions of the right signature produces a sound changed
-                word.
+                     functions of the right signature produces a sound changed
+                     word.
 
         Returns:
-            A new Change object that includes `fetcher` in its domain 
+            A new Change object that includes `fetcher` in its domain
             selection function.
 
         Example:
             ch.to(This.forall(Phone)(λ p: p.feature_is_false("continuant")))
 
-            This would specify the domain of ch to be all phonemes in a word 
-            that satisfy the condition that they are not continuants. 
+            This would specify the domain of ch to be all phonemes in a word
+            that satisfy the condition that they are not continuants.
             The same effect could be achieved by writing:
 
             ch.to(λ td: λ f, c: td._run_ph(
@@ -184,7 +189,7 @@ class Change(object):
 
         """
         nc = deepcopy(self)
-        nc.appl = fetcher if nc.appl is None else o(fetcher, nc.appl)
+        nc.appl = fetcher if nc.appl is None else utils.o(fetcher, nc.appl)
         return nc
 
     def do(self, changer):
@@ -201,7 +206,8 @@ class Change(object):
             its conditions are met.
         """
         nc = deepcopy(self)
-        nc.changes = changer if nc.changes is None else o(changer, nc.changes)
+        nc.changes = changer if nc.changes is None else utils.o(
+            changer, nc.changes)
         return nc
 
     def _eval(self, transducer):
@@ -253,7 +259,7 @@ class Transducer(object):
         Applies a sound change over phonemes to the current word.
 
         Args:
-            pred: A predicate on the current phoneme. Corresponds to the 
+            pred: A predicate on the current phoneme. Corresponds to the
                 domain of the sound change.
 
             f: A function that transforms one phoneme into another. The
@@ -261,7 +267,7 @@ class Transducer(object):
 
             cond: A predicate on the current state on the transducer. This
                 allows expressing conditions on e.g. properties of the
-                containing syllable, properties of the word, properties 
+                containing syllable, properties of the word, properties
                 of adjacent phonemes etc.
 
         Returns:
@@ -278,8 +284,8 @@ class Transducer(object):
                     self.ignore_next = False
                 else:
                     try:
-                        np = f(
-                            self) if pred(phoneme) and cond(self) else phoneme
+                        np = (f(self)
+                              if pred(phoneme) and cond(self) else phoneme)
                     except IndexError:
                         np = phoneme
                 new_syllable.append(np)
@@ -300,7 +306,7 @@ class Transducer(object):
         Applies a sound change over syllables to the current word.
 
         Args:
-            pred: A predicate on the current syllable. Corresponds to the 
+            pred: A predicate on the current syllable. Corresponds to the
                 domain of the sound change.
 
             f: A function that transforms one syllable into another. The
@@ -330,10 +336,17 @@ class Transducer(object):
         return Word(new_syllables)
 
     def advance(self):
+        """
+        Causes the Transducer to skip the next phoneme.
+        """
         self.ignore_next = True
 
 
 class ChangeGroup(Change):
+    """
+    A class for grouping together several Changes that still need
+    to be applied all at once.
+    """
     def __init__(self, changes):
         super().__init__()
         self.changes = changes
@@ -346,12 +359,3 @@ class ChangeGroup(Change):
         for ch in new_changes:
             new_word = ch.apply(new_word)
         return new_word
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-
-    main()

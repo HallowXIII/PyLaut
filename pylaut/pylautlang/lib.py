@@ -1,14 +1,21 @@
-import typing
-from typing import List, Callable, Iterable, Optional, Union
-from itertools import zip_longest
-from pylaut.change import *
-from pylaut.change_functions import *
-from pylaut.word import Word, WordFactory, Syllable
-from pylaut.phone import Phone, MonoPhone
+"""
+This module defines several functions for use with PyLautLang, both
+internally and externally in the form of user-callable library functions.
+"""
+
+from pylaut.change.change import *
+from pylaut.change.change_functions import *
+from pylaut.language.phonology.phone import Phone
 
 
 def make_predicate(parser_entity):
+    """
+    This function creates a predicate on a Phone to use with
+    Change.to. It switches on types to determine how best to construct
+    such a predicate.
+    """
     predicate = lambda _: True
+    # We have a feature expression
     if isinstance(parser_entity, dict):
         predicates = []
         for k, v in parser_entity.items():
@@ -21,18 +28,21 @@ def make_predicate(parser_entity):
             return True
 
         predicate = feature_predicate
+    # A phoneme
     elif isinstance(parser_entity, Phone):
 
         def phone_predicate(p, t=parser_entity):
             return p.is_symbol(t.symbol)
 
         predicate = phone_predicate
+    # An improper phoneme
     elif isinstance(parser_entity, str):
 
         def symbol_predicate(p, t=parser_entity):
             return p.is_symbol(t)
 
         predicate = symbol_predicate
+    # A phoneme list
     elif isinstance(parser_entity, tuple):
         predicates = []
         for t in parser_entity:
@@ -102,6 +112,9 @@ def merge(phonemes, target):
 def epenthesis(this, phoneme):
     p = make_predicate(this)
 
+    if len(phoneme) == 1:
+        phoneme = phoneme[0]
+
     def epenthesize(td, p=p, t=phoneme):
         if p(td.phoneme):
             cur_idx = td.phonemes.index(td.phoneme)
@@ -121,6 +134,10 @@ def resyllabify(*args):
 
 def get_library():
     library = {
+        "__name__": "libpylautlang",
+        "__version__": "0.1.0",
+        "__file__": __file__,
+        "__module_name__": __name__,
         "Metathesis": metathesis,
         "Lengthen": lengthen,
         "IntervocalVoicing": intervocal_voicing,
