@@ -1,10 +1,21 @@
+"""
+This module defines several functions for use with PyLautLang, both
+internally and externally in the form of user-callable library functions.
+"""
+
 from pylaut.change.change import *
 from pylaut.change.change_functions import *
 from pylaut.language.phonology.phone import Phone
 
 
 def make_predicate(parser_entity):
+    """
+    This function creates a predicate on a Phone to use with
+    Change.to. It switches on types to determine how best to construct
+    such a predicate.
+    """
     predicate = lambda _: True
+    # We have a feature expression
     if isinstance(parser_entity, dict):
         predicates = []
         for k, v in parser_entity.items():
@@ -17,18 +28,21 @@ def make_predicate(parser_entity):
             return True
 
         predicate = feature_predicate
+    # A phoneme
     elif isinstance(parser_entity, Phone):
 
         def phone_predicate(p, t=parser_entity):
             return p.is_symbol(t.symbol)
 
         predicate = phone_predicate
+    # An improper phoneme
     elif isinstance(parser_entity, str):
 
         def symbol_predicate(p, t=parser_entity):
             return p.is_symbol(t)
 
         predicate = symbol_predicate
+    # A phoneme list
     elif isinstance(parser_entity, tuple):
         predicates = []
         for t in parser_entity:

@@ -7,13 +7,14 @@ as well as any eventual automagical phonological analysis.
 
 from copy import deepcopy
 from typing import Optional
-import pdb
 
 import lingpy.sequence.sound_classes as lingpy
 
 from pylaut.language.phonology.phonology import Phonology, Phoneme
 from pylaut.utils import replace, split
+from pylaut.tokenise_ipa import tokenise_ipa
 
+import pdb
 
 class Syllable(object):
     """
@@ -375,7 +376,8 @@ class WordFactory(object):
         #what about ˌ ?
         raw_word = replace(raw_word, "'", ".", "'")
         raw_word = replace(raw_word, "ˈ", ".", "ˈ")
-        raw_syllables = [syl for syl in split(raw_word, ".") if syl]
+        # raw_syllables = [syl for syl in split(raw_word, ".") if syl]
+        raw_syllables = tokenise_ipa(raw_word)
         syllables = []
         for rs in raw_syllables:
             syl = []

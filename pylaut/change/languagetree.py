@@ -172,6 +172,9 @@ class LanguageTree():
 
     @classmethod
     def load(cls, file_path_or_name: str):
+        """
+        Loads a LanguageTree from disk.
+        """
         p = pathlib.Path(file_path_or_name)
         if not p.exists():
             p = pathlib.Path(f'{file_path_or_name}.json')
@@ -197,6 +200,11 @@ class LanguageTree():
             self.changes = parser.parse_file(change_path)
 
     def tree(self, indent=2) -> str:
+        """
+        This method converts the languagetree to JSON, leaving out
+        data that would be distracting to a human reader. It is
+        intended to be used interactively for visualisation.
+        """
         basic_tree = self.to_json(as_dict=True)
 
         def _tree(t):
@@ -239,6 +247,15 @@ class LanguageTree():
 
     def add_node(self, name=None, date=None, proto=None,
                  file_prefix=None) -> None:
+        """
+        Adds a child node (family) to the language tree.
+
+        :param str name: The name of the family.
+        :param int date: The date at which the proto-language was spoken.
+        :param str proto: The name of the proto-language.
+        :param str file_prefix: What the data files for the language should
+                                be called, if different from the family name.
+        """
         if not proto:
             proto = name
         new = LanguageTree(
@@ -249,6 +266,9 @@ class LanguageTree():
         return new
 
     def save(self) -> None:
+        """
+        This method serializes the LanguageTree to disk.
+        """
         if self.meta.file_path:
             # We are a family root node or the user has decided to make us one
             # Save family information
@@ -264,6 +284,7 @@ class LanguageTree():
             self.lexicon_delta.save(self.meta.lexicon_delta_file_path)
 
     def _dfs(self, root, node_name: str):
+        """A simple depth-first search."""
         if root is None:
             root = self
         for c in root.children:
@@ -282,6 +303,13 @@ class LanguageTree():
             return self._dfs(self._dfs(None, root_name)[-1], node_name)
 
     def simulate(self, node_name: str) -> None:
+        """
+        The heart and soul of the LanguageTree class. This method, given
+        the name of a node in the tree, will build a path from the root
+        to that node, load all the files for that path and continuously
+        simulate the sound changes for those stages, until the goal has
+        been reached.
+        """
         path = self._build_path(None, node_name)
         if not path:
             raise ValueError(f'No such node: {node_name}.')
@@ -306,6 +334,9 @@ class LanguageTree():
                 this.lexicon = new_lexicon
 
     def get_node(self, node_name: str):
+        """
+        This method finds a node by name in the LanguageTree.
+        """
         cand = self._dfs(None, node_name)
         ret = cand[-1] if cand else None
         return ret

@@ -25,12 +25,13 @@ class FeatureModel():
     _FALSE_FEATURE = "-"
     _NULL_FEATURE = "0"
     _possible_feature_values = [_TRUE_FEATURE, _FALSE_FEATURE, _NULL_FEATURE]
-    # the longest distance between features that get_ipa_from_features will regard
+    # the longest distance between features that get_ipa_from_features will
+    # regard
     _IGNORE_DISTANCE_GREATER_THAN = 5
 
     def __init__(self, feature_set_file_name, feature_set_path=None):
 
-        #stores whether the feature set defines an IPA lookup table
+        # stores whether the feature set defines an IPA lookup table
         self._feature_set_ipa_lookup = False
 
         self._feature_set_file_name = feature_set_file_name
@@ -58,7 +59,8 @@ class FeatureModel():
         """
         if not dir_path:
             try:
-                return pkgutil.get_data('pylaut', f'data/{fname}').decode('utf-8')
+                return pkgutil.get_data('pylaut',
+                                        f'data/{fname}').decode('utf-8')
             except IOError as ie:
                 raise f"""Couldn't load feature set '{fname}' from package!
                 Did you forget to specify a file path?""" from ie
@@ -106,10 +108,11 @@ class FeatureModel():
 
         if not dir_path:
             try:
-                ipa_file = pkgutil.get_data('pylaut', f'data/{ipa_file_name}').decode('utf-8')
+                ipa_file = pkgutil.get_data(
+                    'pylaut', f'data/{ipa_file_name}').decode('utf-8')
                 if ipa_dcs_file_name:
-                    ipa_dcs_file = pkgutil.get_data('pylaut',
-                                         f'data/{ipa_dcs_file_name}').decode('utf-8')
+                    ipa_dcs_file = pkgutil.get_data(
+                        'pylaut', f'data/{ipa_dcs_file_name}').decode('utf-8')
                 else:
                     ipa_dcs_file = None
             except IOError as ie:
@@ -170,7 +173,8 @@ class FeatureModel():
             if not self._ipa_diacritics:
                 feature_set_ipa_dcs_raw = ipa_files_raw[1]
                 if feature_set_ipa_dcs_raw:
-                    feature_set_ipa_dcs_raw = feature_set_ipa_dcs_raw.split('\n')
+                    feature_set_ipa_dcs_raw = feature_set_ipa_dcs_raw.split(
+                        '\n')
                     for line in feature_set_ipa_dcs_raw[1:]:
                         if line:
                             feature_set_ipa_dc = line.split()
@@ -204,8 +208,7 @@ class FeatureModel():
                         idx = self.features.index(dc_fname)
                         ipa_char_features[idx] = dc_val
                 except KeyError:
-                    raise KeyError(
-                        " {} not found in IPA lookup.".format(char))
+                    raise KeyError(" {} not found in IPA lookup.".format(char))
         return ipa_char_features
 
     def feature_hamming(self, feature_list, ipa_feature_list):
@@ -262,36 +265,37 @@ class FeatureModel():
         """
         Returns a string giving an IPA representation of the Phone.
         """
-        #check to see if the phone has a good IPA representation first
+        # check to see if the phone has a good IPA representation first
         symbol = self.is_good_ipa(feature_list)
-        #if it does, return it
+        # if it does, return it
         if symbol:
             return symbol
-        #otherwise proceed: we must identify a similar base IPA glyph and then
-        #add diacritics
-        #get feature list to compare to Phone._ipa_dict
-        #stores (features differing, number of different features = hamming dist)
-        #indexed by ipa char
+        # otherwise proceed: we must identify a similar base IPA glyph and then
+        # add diacritics
+        # get feature list to compare to Phone._ipa_dict
+        # stores (features differing, number of different features
+        # = hamming dist)
+        # indexed by ipa char
         hamming_dict = dict()
 
         for ipa_char in self._ipa_dict:
             ipa_feature_list = self._ipa_dict[ipa_char]
             diffs, hamming_dist = self.feature_hamming(feature_list,
                                                        ipa_feature_list)
-            #ignore ipa symbols infeasibly far -- they are unlikely to make good
-            #representations
+            # ignore ipa symbols infeasibly far -- they are unlikely to make
+            # good representations
             if hamming_dist > self._IGNORE_DISTANCE_GREATER_THAN:
                 pass
             else:
                 hamming_dict[ipa_char] = (diffs, hamming_dist)
 
-        #compile a list from hamming_dict, sorting by hamming_dist
+        # compile a list from hamming_dict, sorting by hamming_dist
         hamming_list = sorted(hamming_dict.items(), key=lambda x: x[1][1])
 
-        #collect items in hamming_list together into a dictionary
-        #index is hamming distance between phone and base ipa chars
-        #values are lists of tuples (ipa char, diffs)
-        #these are our first-round candidates
+        # collect items in hamming_list together into a dictionary
+        # index is hamming distance between phone and base ipa chars
+        # values are lists of tuples (ipa char, diffs)
+        # these are our first-round candidates
         hamming_dict_collected = dict()
         for symbol, (diffs, distance) in hamming_list:
             if distance in hamming_dict_collected:
@@ -299,24 +303,21 @@ class FeatureModel():
             else:
                 hamming_dict_collected[distance] = [(symbol, diffs)]
 
-        #look to see which of these can have diacritics added and work out which
+        # look to see which of these can have diacritics added and work out which
 
-        #reverse Phone._ipa_diacritics so we can look up diacritics
-        #from the feature
-        reverse_diacritics = {
-            a: b
-            for b, a in self._ipa_diacritics.items()
-        }
+        # reverse Phone._ipa_diacritics so we can look up diacritics
+        # from the feature
+        reverse_diacritics = {a: b for b, a in self._ipa_diacritics.items()}
 
-        #this will hold our final candidates
+        # this will hold our final candidates
         valid = list()
 
-        #go through our first-round candidates
+        # go through our first-round candidates
         for distance in hamming_dict_collected:
             for candidate_base, diffs in hamming_dict_collected[distance]:
-                # every feature in the first-round candidates is checked to see if
-                # there is a diacritic, if there is we note what the diacritic is,
-                # otherwise we leave an ominous blank
+                # every feature in the first-round candidates is checked to see
+                # if there is a diacritic, if there is we note what the
+                # diacritic is, otherwise we leave an ominous blank
                 # purged_diffs = [reverse_diacritics[tuple(db)] if
                 #                 tuple(db) in reverse_diacritics else
                 #                 None for db in utils.breakat(
@@ -335,7 +336,8 @@ class FeatureModel():
                     if None in purged_diffs:
                         pass
                     else:
-                        #we store the second-round candidate base glyph with diacritics
+                        # we store the second-round candidate base glyph with
+                        # diacritics
                         valid += [(candidate_base, purged_diffs)]
 
         # TODO: identify the lowest-indexed solutions thus left

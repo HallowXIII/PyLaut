@@ -1,5 +1,4 @@
 import json
-import sys
 from copy import deepcopy
 from os import path
 from pprint import pprint
