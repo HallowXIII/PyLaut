@@ -8,13 +8,10 @@ as well as any eventual automagical phonological analysis.
 from copy import deepcopy
 from typing import Optional
 
-import lingpy.sequence.sound_classes as lingpy
-
 from pylaut.language.phonology.phonology import Phonology, Phoneme
 from pylaut.utils import replace, split
-from pylaut.tokenise_ipa import tokenise_ipa
+from pylaut.tokenise_ipa import tokenise_ipa, syllabify
 
-import pdb
 
 class Syllable(object):
     """
@@ -407,7 +404,7 @@ class WordFactory(object):
         return word
 
     def fromlist(self, seglist):
-        syllabified = lingpy.syllabify(seglist, sep='.')
+        syllabified = syllabify(seglist, sep='.')
         return self.make_word(syllabified)
 
 

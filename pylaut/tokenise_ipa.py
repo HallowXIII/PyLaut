@@ -54,3 +54,7 @@ def tokenise_ipa(s, feature_set=None):
         out = tuple(t for t in out if t is not ())
 
     return out
+
+
+def syllabify(seglist: list, sep: str) -> list:
+    pass

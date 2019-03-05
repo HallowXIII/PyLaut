@@ -5,3 +5,4 @@ PyLaut.egg-info
 *~
 *.pyc
 #*#
+.pyre
