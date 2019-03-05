@@ -11,25 +11,15 @@ environment:
 
   matrix:
       # Windows x86 Builds
-    - PYTHON: "C:\\Python27-x64"
-      PYTHON_VERSION: "2.7.x"
+    - PYTHON: "C:\\Python36-x64"
+      PYTHON_VERSION: "3.6.x"
       PYTHON_ARCH: "64"
-      TOXENV: "py27"
+      TOXENV: "py36"
 
-    - PYTHON: "C:\\Python33-x64"
-      PYTHON_VERSION: "3.3.x"
+    - PYTHON: "C:\\Python37-x64"
+      PYTHON_VERSION: "3.7.x"
       PYTHON_ARCH: "64"
-      TOXENV: "py33"
-
-    - PYTHON: "C:\\Python34-x64"
-      PYTHON_VERSION: "3.4.x"
-      PYTHON_ARCH: "64"
-      TOXENV: "py34"
-
-    - PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5.x"
-      PYTHON_ARCH: "64"
-      TOXENV: "py35"
+      TOXENV: "py37"
 
 install:
   # Install Python (from the official .msi of http://python.org) and pip when
