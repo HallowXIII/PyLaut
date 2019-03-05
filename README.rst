@@ -22,33 +22,21 @@ PyLaut
 .. image:: https://img.shields.io/pypi/v/pylaut.svg
     :target: https://pypi.python.org/pypi/pylaut
     :alt: PyPI Version
-.. image:: https://img.shields.io/badge/say-thanks-ff69b4.svg
-    :target: https://saythanks.io/to/HallowXIII
-    :alt: Say Thanks to the Maintainers
 
 A Python library for diachronic language simulation.
 
 Getting Started with PyLaut
 ----------------------------
 
-PyLaut is available on PyPI can be installed with `pip <https://pip.pypa.io>`_.::
+PyLaut is still in prerelease and thus not yet available outside of the github repository.
 
-    $ python -m pip install pylaut
-
-To install the latest development version from `Github <https://github.com/HallowXIII/pylaut>`_::
+If you would like to hack on PyLaut, install the latest development version from
+`Github <https://github.com/HallowXIII/pylaut>`_::
 
     $ python -m pip install git+git://github.com/HallowXIII/pylaut.git
 
 
 If your current Python installation doesn't have pip available, try `get-pip.py <bootstrap.pypa.io>`_
-
-After installing PyLaut you can use it like any other Python module.
-Here's a very simple example:
-
-.. code-block:: python
-
-    import pylaut
-    # Fill this section in with the common use-case.
 
 API Reference
 -------------
@@ -66,7 +54,7 @@ Please respect contributors by not using personal contacts for support requests.
 Contributing
 ------------
 
-We happily welcome contributions, please see `our guide for Contributors <http://pylaut.readthedocs.io/en/latest/contributing.html>`_ for the best places to start and help.
+We happily welcome contributions, please see `the GitHub issues page <https://github.com/HallowXIII/pylaut/issues>`_ for the best places to start and help.
 
 License
 -------
