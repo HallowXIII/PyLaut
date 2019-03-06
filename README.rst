@@ -1,23 +1,23 @@
 PyLaut
 =======
 
-.. image:: https://img.shields.io/travis/HallowXIII/pylaut/master.svg
-    :target: https://travis-ci.org/HallowXIII/pylaut
+.. image:: https://img.shields.io/travis/HallowXIII/PyLaut/master.svg
+    :target: https://travis-ci.org/HallowXIII/PyLaut
     :alt: Linux and MacOS Build Status
 .. image:: https://img.shields.io/appveyor/ci/HallowXIII/pylaut/master.svg
     :target: https://ci.appveyor.com/project/HallowXIII/pylaut
     :alt: Windows Build Status
-.. image:: https://img.shields.io/codecov/c/github/HallowXIII/pylaut/master.svg
-    :target: https://codecov.io/gh/HallowXIII/pylaut
+.. image:: https://img.shields.io/codecov/c/github/HallowXIII/PyLaut/master.svg
+    :target: https://codecov.io/gh/HallowXIII/PyLaut
     :alt: Test Suite Coverage
-.. image:: https://img.shields.io/codeclimate/github/HallowXIII/pylaut.svg
-    :target: https://codeclimate.com/github/HallowXIII/pylaut
-    :alt: Code Health
+.. image:: https://api.codeclimate.com/v1/badges/754cccd7d3c569d24d66/maintainability
+   :target: https://codeclimate.com/github/HallowXIII/PyLaut/maintainability
+   :alt: Maintainability
 .. image:: https://readthedocs.org/projects/pylaut/badge/?version=latest
     :target: http://pylaut.readthedocs.io
     :alt: Documentation Build Status
-.. image:: https://pyup.io/repos/github/HallowXIII/pylaut/shield.svg
-     :target: https://pyup.io/repos/github/HallowXIII/pylaut
+.. image:: https://pyup.io/repos/github/HallowXIII/PyLaut/shield.svg
+     :target: https://pyup.io/repos/github/HallowXIII/PyLaut
      :alt: Dependency Versions
 .. image:: https://img.shields.io/pypi/v/pylaut.svg
     :target: https://pypi.python.org/pypi/pylaut
