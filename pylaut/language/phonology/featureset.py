@@ -303,7 +303,7 @@ class FeatureModel():
             else:
                 hamming_dict_collected[distance] = [(symbol, diffs)]
 
-        # look to see which of these can have diacritics added and work out which
+        # look to see which of these can have diacritics added, work out which
 
         # reverse Phone._ipa_diacritics so we can look up diacritics
         # from the feature

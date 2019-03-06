@@ -9,7 +9,7 @@ from copy import deepcopy
 from typing import Optional
 
 from pylaut.language.phonology.phonology import Phonology, Phoneme
-from pylaut.utils import replace, split
+from pylaut.utils import replace
 from pylaut.tokenise_ipa import tokenise_ipa, syllabify
 
 
@@ -19,6 +19,7 @@ class Syllable(object):
     cross-linguistically, but as far as we are concerned, it is a sonority peak
     surrounded optionally by less sonorous phonemes.
     """
+
     def __init__(self, phonemes):
         self.phonemes = [p for p in phonemes if p is not None]
         self.stressed = False
@@ -46,7 +47,7 @@ class Syllable(object):
 
     def __repr__(self):
         output = [] if self.word_position in ["initial", "monosyllable"
-        ] else ["-"]
+                                              ] else ["-"]
 
         if self.stressed:
             output += ["'"]
@@ -116,20 +117,21 @@ class Syllable(object):
         architectural problem in the future.
         """
         sonorities = [(ph, ph.get_sonority()) for ph in self.phonemes]
-        #check to see if there are phones w/ sonorities >= 10
+        # check to see if there are phones w/ sonorities >= 10
         if max(sonorities, key=lambda x: x[1])[1] >= 10:
             maximum_sonority = 10
-            #reduce all vowels to level 10, n := 10
+            # reduce all vowels to level 10, n := 10
             sonorities = [(s[0], 10) if s[1] > 10 else s for s in sonorities]
-            #if there are none, check for sonorities >= 5 and use max as n
+            # if there are none, check for sonorities >= 5 and use max as n
         elif max(sonorities, key=lambda x: x[1])[1] >= 5:
             maximum_sonority = max(sonorities, key=lambda x: x[1])[1]
-            #if there are neither, return 0
+            # if there are neither, return 0
         else:
             return []
 
-        #group together all adjacent ns
-        #TODO: fun fact: len(a) is too big, and a smaller value will work. find it
+        # group together all adjacent ns
+        # TODO: fun fact: len(a) is too big, and a smaller value will work.
+        # find it
         for m in range(len(sonorities)):
             for i, n in enumerate(sonorities):
                 try:
@@ -140,15 +142,15 @@ class Syllable(object):
                 except TypeError:
                     continue
 
-        #return ns in the list
+        # return ns in the list
         return [x[0] for x in sonorities if x[1] == maximum_sonority]
 
     def count_nuclei(self):
         """
         Returns an estimated number of nuclei in this syllable.
-        If the value is greater than 1, something is likely wrong, e.g. the source
-        has been incorrectly syllabified. If it is less than 1 either something 
-        is wrong, or you are in the PNW.
+        If the value is greater than 1, something is likely wrong, e.g. the
+        source has been incorrectly syllabified. If it is less than 1 either
+        something is wrong, or you are in the PNW.
         """
         return len(self.find_nuclei())
 
@@ -166,32 +168,31 @@ class Syllable(object):
                 pass
 
             non_tones = list(filter(lambda p: not p.is_tone(), self.phonemes))
-            sonorities = [ph.get_sonority() for ph in non_tones]
 
             onset, nucleus, coda = [], [], []
-            if self.contains_vowel():  #the job is easier!
+            if self.contains_vowel():  # the job is easier!
                 n, c = False, False
                 for i, ph in enumerate(non_tones):
-                    #we haven"t triggered either nucleus or coda bit + is C
+                    # we haven"t triggered either nucleus or coda bit + is C
                     if not n and not c and ph.is_consonant():
                         onset += [ph]
-                        #we haven"t triggered either nucleus or coda bit + is V
+                        # we haven't triggered nucleus or coda bit + is V
                     elif not n and not c and ph.is_vowel():
                         n = True
                         nucleus += [ph]
-                        #we HAVE triggered nucleus but not coda bit + is V
+                        # we HAVE triggered nucleus but not coda bit + is V
                     elif n and not c and ph.is_vowel():
                         nucleus += [ph]
-                        #we HAVE triggered nucleus but not coda bit + is V
+                        # we HAVE triggered nucleus but not coda bit + is V
                     elif n and not c and ph.is_consonant():
                         c = True
                         coda += [ph]
-                        #nucleus and coda bit both triggered, all consonants now go in
-                        #coda
+                        # nucleus and coda bit both triggered, all consonants
+                        # now go in coda
                     elif n and c and ph.is_consonant():
                         coda += [ph]
-                        #this would mean multiple nuclei + the first part of this is
-                        #supposed to check for this!
+                        # this would mean multiple nuclei + the first part of
+                        # this is supposed to check for this!
                     elif n and c and ph.is_vowel():
                         raise Exception("Vowel {} found in coda of {}".format(
                             ph, self))
@@ -369,8 +370,8 @@ class WordFactory(object):
         return syl
 
     def make_word(self, raw_word):
-        #turn ' into .' to allow splitting into syllables
-        #what about ˌ ?
+        # turn ' into .' to allow splitting into syllables
+        # what about ˌ ?
         raw_word = replace(raw_word, "'", ".", "'")
         raw_word = replace(raw_word, "ˈ", ".", "ˈ")
         # raw_syllables = [syl for syl in split(raw_word, ".") if syl]
@@ -380,11 +381,11 @@ class WordFactory(object):
             syl = []
             stressed = False
 
-            #if there is a "'", this syllable has stress
+            # if there is a "'", this syllable has stress
             if rs[0] in ["'", "ˈ"]:
                 stressed = True
 
-            #TODO identify diacritics
+            # TODO identify diacritics
             proto_syl = []
 
             if stressed:
@@ -408,12 +409,12 @@ class WordFactory(object):
         return self.make_word(syllabified)
 
 
-################################################################################
+###############################################################################
 
 
 def test():
 
-    #example phonology
+    # example phonology
     phonemes = [
         "p", "t", "k", "b", "d", "ɡ", "m", "n", "s", "f", "w", "j", "r", "l",
         "a", "e", "i", "o", "u"
@@ -424,13 +425,13 @@ def test():
 
 
 def main():
-    #example phonology
+    # example phonology
     wf = test_wf()
-    #raw_words = ["a'ma.re","'ka.sa","'ar.bo.re","et","ak'tjo.ne"]
-    #words = []
-    #for word in raw_words:
+    # raw_words = ["a'ma.re","'ka.sa","'ar.bo.re","et","ak'tjo.ne"]
+    # words = []
+    # for word in raw_words:
     #    words += [wf.make_word(word)]
-    #print(words)
+    # print(words)
 
     raw_words = ["amare", "banana", "aktjone", "ndela", "adam", "erajnd"]
     print(list(map(wf.fromlist, raw_words)))

@@ -1,11 +1,9 @@
 from copy import deepcopy
-from functools import partial
 
 from pylaut import utils
 from pylaut.language.phonology.phone import Phone
-from pylaut.language.phonology.phonology import Phoneme, Phonology
-from pylaut.language.phonology.word import Syllable, Word, WordFactory
-from pylaut.utils import flatten_partial, mapwith
+from pylaut.language.phonology.word import Syllable, Word
+from pylaut.utils import flatten_partial
 
 
 class This(object):
@@ -20,7 +18,8 @@ class This(object):
         at :: (Type * Int * (WordPart -> Bool)) -> Transducer -> Bool
 
         Returns a function from a Transducer to the word part of type Type
-        at offset `position` from the current word part the change is acting on.
+        at offset `position` from the current word part the change is acting
+        on.
         """
         if kind == Syllable:
 
@@ -125,9 +124,10 @@ class Change(object):
         when :: (Change * (Transducer -> Bool)) -> Change
 
         This method is intended to allow for conditioning a sound change on
-        properties of word parts at relative locations within (e.g. m > b if the vowel
-        of the last syllable is nasalised). It takes a function that fetches
-        a word part from a Transducer object and a predicate on the word part.
+        properties of word parts at relative locations within (e.g. m > b if
+        the vowel of the last syllable is nasalised). It takes a function that
+        fetches a word part from a Transducer object and a predicate on the
+        word part.
 
         For more convenient indication of relative positions, the This class
         provides the at() method, the return value of which may be used as the
@@ -254,7 +254,8 @@ class Transducer(object):
     def _run_ph(self, pred, f, cond):
         """
         _run_ph :: (Transducer * (Phoneme -> Bool) *
-                    (Transducer -> Plist[Phoneme]) * (Transducer -> Bool)) -> Word
+                    (Transducer -> Plist[Phoneme]) * (Transducer -> Bool))
+                   -> Word
 
         Applies a sound change over phonemes to the current word.
 

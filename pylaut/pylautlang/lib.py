@@ -3,9 +3,9 @@ This module defines several functions for use with PyLautLang, both
 internally and externally in the form of user-callable library functions.
 """
 
-from pylaut.change.change import *
-from pylaut.change.change_functions import *
+from pylaut.change import change, change_functions
 from pylaut.language.phonology.phone import Phone
+from typing import Any
 
 
 def make_predicate(parser_entity):
@@ -14,7 +14,12 @@ def make_predicate(parser_entity):
     Change.to. It switches on types to determine how best to construct
     such a predicate.
     """
-    predicate = lambda _: True
+
+    def default(_: Any) -> bool:
+        return True
+
+    predicate = default
+
     # We have a feature expression
     if isinstance(parser_entity, dict):
         predicates = []
@@ -83,29 +88,31 @@ def metathesis(left, right):
     def defer(this):
         return exchange(this)
 
-    return Change().do(defer).to(This.forall(Phone)(pl)).when(
-        This.at(Phone, 1, pr))
+    return change.Change().do(defer).to(change.This.forall(Phone)(pl)).when(
+        change.This.at(Phone, 1, pr))
 
 
 def lengthen(phone):
-    return Change().do(
-        lambda this: change_feature(this.phoneme, "long", True)).to(
-            This.forall(Phone)(make_predicate(phone)))
+    return change.Change().do(
+        lambda this: change_functions.change_feature(
+            this.phoneme, "long", True)
+    ).to(change.This.forall(Phone)(make_predicate(phone)))
 
 
 def intervocal_voicing(this):
-    return Change().do(
-        lambda this: change_feature(this.phoneme, "voice", True)).to(
-            This.forall(Phone)(make_predicate(this))).when(
-                This.at(Phone, -1, lambda p: p.is_vowel())).when(
-                    This.at(Phone, 1, lambda p: p.is_vowel()))
+    return change.Change().do(
+        lambda this: change_functions.change_feature(
+            this.phoneme, "voice", True)).to(
+            change.This.forall(Phone)(make_predicate(this))).when(
+                change.This.at(Phone, -1, lambda p: p.is_vowel())).when(
+                    change.This.at(Phone, 1, lambda p: p.is_vowel()))
 
 
 def merge(phonemes, target):
     target = target[0]
     phonemes = [p[0] for p in phonemes]
-    return Change().do(lambda _: target).to(
-        This.forall(Phone)(
+    return change.Change().do(lambda _: target).to(
+        change.This.forall(Phone)(
             lambda p: any(p.is_symbol(b.symbol) for b in phonemes)))
 
 
@@ -125,11 +132,11 @@ def epenthesis(this, phoneme):
             return td.phoneme
         return td.phoneme
 
-    return Change().do(epenthesize).to(This.forall(Phone)(p))
+    return change.Change().do(epenthesize).to(change.This.forall(Phone)(p))
 
 
 def resyllabify(*args):
-    return Resyllabify()
+    return change.Resyllabify()
 
 
 def get_library():

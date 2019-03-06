@@ -65,9 +65,9 @@ class SoundLaw():
             self.sc_lib = lib.get_library()
 
         # TODO: we obviously also want to support changes that aren't done
-        # with pylautlang, but those have the problem of not being serializable!
-        # So for now the solution is to make the user provide a custom pylautlang
-        # library that exposes the changes as functions.
+        # with pylautlang, but those have the problem of not being
+        # serializable! So for now the solution is to make the user provide
+        # a custom pylautlang library that exposes the changes as functions.
         # We may want to make this easier.
 
         if not isinstance(self.code, str):

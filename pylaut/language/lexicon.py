@@ -1,8 +1,6 @@
 from pylaut.language.phonology import word, phonology
-from pylaut.tokenise_ipa import tokenise_ipa
 import random
 import pathlib
-import pdb
 
 
 class Lexicon(object):

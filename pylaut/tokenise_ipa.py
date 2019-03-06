@@ -2,11 +2,13 @@ from itertools import tee
 from pkgutil import get_data
 from pylaut import utils
 
+
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
+
 
 def tokenise_ipa(s, feature_set=None):
     """

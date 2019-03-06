@@ -1,12 +1,12 @@
+import copy
 from itertools import zip_longest
 from typing import Iterable, List, Optional
 
-from pylaut.change.change import *
+import pylaut.change.change as change
 from pylaut.language.phonology.phone import Phone
 from pylaut.language.phonology.phonology import Phoneme, Phonology
 from pylaut.language.phonology.word import Syllable, Word, WordFactory
 
-import pdb
 
 class Contour(Phoneme):
     def __init__(self, plist):
@@ -18,7 +18,7 @@ class Contour(Phoneme):
         return "".join(["/", self.symbol, "/"])
 
 
-class ComplexDomain(Change):
+class ComplexDomain(change.Change):
     def __init__(self, plist):
         super().__init__()
         self.contour = plist
@@ -27,7 +27,7 @@ class ComplexDomain(Change):
         return super().apply(sequence_to_contour(word_obj, self.contour))
 
 
-class Resyllabify(Change):
+class Resyllabify(change.Change):
     def __init__(self, wf=None):
         super().__init__()
         self.wf = wf
@@ -77,7 +77,7 @@ def sequence_to_contour(w: Word, seq: List[Phoneme]) -> Word:
 
 
 def change_feature(phone: Phone, name: str, value: str) -> Phone:
-    np = deepcopy(phone)
+    np = copy.deepcopy(phone)
     if value == '+':
         np.set_features_true(name)
     elif value == '-':
@@ -92,7 +92,7 @@ def delete_phonemes(syllable: Syllable,
     return syllable
 
 
-def before_stress(td: Transducer) -> bool:
+def before_stress(td: change.Transducer) -> bool:
     wstr = td.word.get_stressed_position()
     if wstr is None:
         return False
@@ -100,7 +100,7 @@ def before_stress(td: Transducer) -> bool:
         return (td.syllables.index(td.syllable) < wstr)
 
 
-def after_stress(td: Transducer) -> bool:
+def after_stress(td: change.Transducer) -> bool:
     wstr = td.word.get_stressed_position()
     if wstr is None:
         return False
@@ -108,11 +108,12 @@ def after_stress(td: Transducer) -> bool:
         return (td.syllables.index(td.syllable) > wstr)
 
 
-def replace_phonemes(domain: List[Phone], codomain: List[Phone]) -> Change:
+def replace_phonemes(domain: List[Phone],
+                     codomain: List[Phone]) -> change.Change:
 
     dom = Contour(domain)
     return ComplexDomain(domain).do(lambda x: codomain).to(
-        This.forall(Phone)(lambda p: p.is_symbol(dom.symbol)))
+        change.This.forall(Phone)(lambda p: p.is_symbol(dom.symbol)))
 
 
 def is_diphthong(nucleus: Iterable[Phone], diphthong: Iterable[str]) -> bool:
