@@ -2,7 +2,7 @@ import copy
 from itertools import zip_longest
 from typing import Iterable, List, Optional
 
-import pylaut.change.change as change
+from pylaut.change.change import Change, This, Transducer
 from pylaut.language.phonology.phone import Phone
 from pylaut.language.phonology.phonology import Phoneme, Phonology
 from pylaut.language.phonology.word import Syllable, Word, WordFactory
@@ -18,7 +18,7 @@ class Contour(Phoneme):
         return "".join(["/", self.symbol, "/"])
 
 
-class ComplexDomain(change.Change):
+class ComplexDomain(Change):
     def __init__(self, plist):
         super().__init__()
         self.contour = plist
@@ -27,7 +27,7 @@ class ComplexDomain(change.Change):
         return super().apply(sequence_to_contour(word_obj, self.contour))
 
 
-class Resyllabify(change.Change):
+class Resyllabify(Change):
     def __init__(self, wf=None):
         super().__init__()
         self.wf = wf
@@ -92,7 +92,7 @@ def delete_phonemes(syllable: Syllable,
     return syllable
 
 
-def before_stress(td: change.Transducer) -> bool:
+def before_stress(td: Transducer) -> bool:
     wstr = td.word.get_stressed_position()
     if wstr is None:
         return False
@@ -100,7 +100,7 @@ def before_stress(td: change.Transducer) -> bool:
         return (td.syllables.index(td.syllable) < wstr)
 
 
-def after_stress(td: change.Transducer) -> bool:
+def after_stress(td: Transducer) -> bool:
     wstr = td.word.get_stressed_position()
     if wstr is None:
         return False
@@ -109,11 +109,11 @@ def after_stress(td: change.Transducer) -> bool:
 
 
 def replace_phonemes(domain: List[Phone],
-                     codomain: List[Phone]) -> change.Change:
+                     codomain: List[Phone]) -> Change:
 
     dom = Contour(domain)
     return ComplexDomain(domain).do(lambda x: codomain).to(
-        change.This.forall(Phone)(lambda p: p.is_symbol(dom.symbol)))
+        This.forall(Phone)(lambda p: p.is_symbol(dom.symbol)))
 
 
 def is_diphthong(nucleus: Iterable[Phone], diphthong: Iterable[str]) -> bool:
