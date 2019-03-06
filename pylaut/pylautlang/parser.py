@@ -147,6 +147,7 @@ class PyLautLang(Transformer):
     parse tree into executable sound change objects. Each method translates
     the node of the same name in the grammar.
     """
+
     def __init__(self, funcs={}, featureset=None):
         super().__init__()
         self.funcs = funcs
@@ -470,6 +471,7 @@ class PyLautLang(Transformer):
             Function that closes over condition lists and runs them
             on its transducer argument.
             """
+
             def run_ac():
                 for f in ac:
                     if not f(td):
@@ -653,7 +655,8 @@ class PyLautLang(Transformer):
                         else:
                             relpos = -(len(args) - i)
                             conditions.append(This.is_at_index(Phone, relpos))
-                # Otherwise, assume the string is a phone written without slashes.
+                # Otherwise, assume the string is a phone written without
+                # slashes.
                 else:
                     for p in arg:
                         conditions.append(
@@ -820,11 +823,14 @@ class PyLautLang(Transformer):
             entity = entity[1]
 
         if field == 'nucleus':
-            ret = lambda td, f=entity: f(td).get_nucleus()
+            def ret(td, f=entity):
+                return f(td).get_nucleus()
         elif field == 'onset':
-            ret = lambda td, f=entity: f(td).get_onset()
+            def ret(td, f=entity):
+                return f(td).get_onset()
         elif field == 'coda':
-            ret = lambda td, f=entity: f(td).get_coda()
+            def ret(td, f=entity):
+                return f(td).get_coda()
         elif field == 'quality':
 
             def get_vowel_quality(td, f=entity):
@@ -840,7 +846,8 @@ class PyLautLang(Transformer):
 
             ret = get_vowel_quality
         elif field == 'is_monosyllable':
-            ret = lambda td, f=entity: f(td).is_monosyllable()
+            def ret(td, f=entity):
+                return f(td).is_monosyllable()
         else:
             raise ParseError("Unknown field {}!".format(field))
 
@@ -901,6 +908,7 @@ class PyLautLang(Transformer):
         :param list children: Two things to compare.
         :returns: A predicate on a transducer.
         """
+
         @ft.singledispatch
         def run_equality(left, right):
             return left == right

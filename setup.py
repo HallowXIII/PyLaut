@@ -4,18 +4,18 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
     name='PyLaut',
 
-    #Using semver
+    # Using semver
     version='0.1.0',
     description='A Python package to aid in computer-assisted conlanging',
     long_description=long_description,
     url='https://github.com/HallowXIII/PyLaut',
-    author='Isaac "HallowXIII" Milton and Robert "Pthagnar" Williams',
+    author='Cazim "HallowXIII" Hysi and Robert "Pthagnar" Williams',
     author_email='zephyrnox@gmail.com',
     license='MIT',
 
@@ -26,7 +26,6 @@ setup(
         'Topic :: Text Processing :: Linguistic',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
@@ -46,7 +45,7 @@ setup(
         ]
     },
 
-    #dependencies for the package
-    install_requires=['lark-parser', 'plac', 'lingpy'],
-    #entry points
+    # dependencies for the package
+    install_requires=['lark-parser', 'plac'],
+    # entry points
     entry_points={'console_scripts': ['pylaut = main:main']})

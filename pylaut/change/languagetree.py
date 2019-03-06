@@ -1,21 +1,17 @@
 """
 Module languagetree
-Defines a class holding the diachronic information for all descendants of a single language
+Defines a class holding the diachronic information
+for all descendants of a single language.
 """
 
-import importlib
 import json as jm
 import pathlib
-from typing import List, Dict, Optional, Union
+from typing import Union
 
 from pylaut.language import lexicon
-from pylaut.change import change
-from pylaut.language.phonology import phonology
-from pylaut.pylautlang import lib, parser
+from pylaut.pylautlang import parser
 
 from pylaut import utils
-
-import lark
 
 
 def _jdefault(o):
@@ -323,8 +319,7 @@ class LanguageTree():
                     raise utils.EmptyException(
                         "Cannot simulate changes from "
                         f"{origin.proto} to {this.proto}: "
-                        "changes aren't defined!"
-                    )
+                        "changes aren't defined!")
                 if this.lexicon_delta:
                     prepared_lexicon = this.lexicon_delta.merge(origin.lexicon)
                 else:

@@ -1,19 +1,46 @@
-env:
-  global:
-    - CC_TEST_REPORTER_ID=f72307026db7f469cbf8a2056a38e81ac2d0c5d5c8e9e889c2b3a2b2e74e6039
 language: python
-dist: xenial
-python:
-  - "3.6"
-  - "3.7"
+sudo: false
+
+matrix:
+  include:
+    # Flake8 Style Checking
+    - python: 3.6
+      env: TOXENV=flake8
+
+    # Docs
+    - python: 3.6
+      env: TOXENV=docs
+
+    # Linux Builds
+    - python: 3.6
+      env: TOXENV=py36
+    - python: nightly
+      env: TOXENV=py37
+
+    # OSX Builds
+    - language: generic
+      os: osx
+      env: TOXENV=py36
+
+cache:
+  - pip
+  - directories:
+    - ${HOME}/.cache
+
 install:
-  - pip install -r requirements.txt
-  - python setup.py install
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+  - chmod a+x ./.travis/install.sh ./.travis/run.sh ./.travis/upload_coverage.sh
+  - ./.travis/install.sh
+
 script:
-  - pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning --cov=pylaut/ --cov-report xml
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - ./.travis/run.sh
+
+after_success:
+  - ./.travis/upload_coverage.sh
+
+notifications:
+  email: false
+
+branches:
+  only:
+  - master
+  - release

@@ -1,12 +1,12 @@
+import copy
 from itertools import zip_longest
 from typing import Iterable, List, Optional
 
-from pylaut.change.change import *
+from pylaut.change.change import Change, This, Transducer
 from pylaut.language.phonology.phone import Phone
 from pylaut.language.phonology.phonology import Phoneme, Phonology
 from pylaut.language.phonology.word import Syllable, Word, WordFactory
 
-import pdb
 
 class Contour(Phoneme):
     def __init__(self, plist):
@@ -77,7 +77,7 @@ def sequence_to_contour(w: Word, seq: List[Phoneme]) -> Word:
 
 
 def change_feature(phone: Phone, name: str, value: str) -> Phone:
-    np = deepcopy(phone)
+    np = copy.deepcopy(phone)
     if value == '+':
         np.set_features_true(name)
     elif value == '-':
@@ -108,7 +108,8 @@ def after_stress(td: Transducer) -> bool:
         return (td.syllables.index(td.syllable) > wstr)
 
 
-def replace_phonemes(domain: List[Phone], codomain: List[Phone]) -> Change:
+def replace_phonemes(domain: List[Phone],
+                     codomain: List[Phone]) -> Change:
 
     dom = Contour(domain)
     return ComplexDomain(domain).do(lambda x: codomain).to(

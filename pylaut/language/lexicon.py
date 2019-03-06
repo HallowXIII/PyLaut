@@ -1,8 +1,6 @@
 from pylaut.language.phonology import word, phonology
-from pylaut.tokenise_ipa import tokenise_ipa
 import random
 import pathlib
-import pdb
 
 
 class Lexicon(object):
@@ -45,9 +43,7 @@ class Lexicon(object):
         return rand_entry
 
     def from_string(self, raw_lexicon):
-        read_words = [
-            x for x in raw_lexicon.splitlines() if x and x[0] != "#"
-        ]
+        read_words = [x for x in raw_lexicon.splitlines() if x and x[0] != "#"]
         split_words = [x.split() for x in read_words]
 
         # make Lexicons
