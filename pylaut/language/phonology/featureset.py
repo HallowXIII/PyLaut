@@ -68,7 +68,7 @@ class FeatureModel():
             try:
                 path = pathlib.Path(dir_path) / fname
                 resolved_path = path.resolve()
-                with resolved_path.open('r') as inf:
+                with resolved_path.open('r', encoding='utf-8') as inf:
                     ret = inf.read()
                 return ret
             except IOError as ie:
@@ -121,12 +121,13 @@ class FeatureModel():
         else:
             try:
                 ipa_file_path = pathlib.Path(dir_path) / ipa_file_name
-                with ipa_file_path.open('r') as ipaf:
+                with ipa_file_path.open('r', encoding='utf-8') as ipaf:
                     ipa_file = ipaf.read()
                 if ipa_dcs_file_name:
                     ipa_dcs_file_path = pathlib.Path(
                         dir_path) / ipa_dcs_file_name
-                    with ipa_dcs_file_path.open('r') as ipadcf:
+                    with ipa_dcs_file_path.open(
+                            'r', encoding='utf-8') as ipadcf:
                         ipa_dcs_file = ipadcf.read()
                 else:
                     ipa_dcs_file = None

@@ -113,7 +113,8 @@ class Phone(object):
         set on the first line, with features given in []s each on its separate
         line.
         """
-        feature_set_raw = open(feature_set_file_name, "r").read().splitlines()
+        feature_set_raw = open(
+            feature_set_file_name, "r", encoding="utf-8").read().splitlines()
         feature_set_name = feature_set_raw[0]
         if feature_set_raw[1]:
             if feature_set_raw[1] and feature_set_raw[2] != "0":
@@ -153,7 +154,7 @@ class Phone(object):
             if not Phone._feature_set_ipa_diacritics:
                 try:
                     feature_set_ipa_dcs_file = open(
-                        feature_set_diacritics_filename, "r")
+                        feature_set_diacritics_filename, "r", encoding="utf-8")
                     feature_set_ipa_dcs_raw = feature_set_ipa_dcs_file.read(
                     ).splitlines()
                     feature_set_ipa_dcs_file.close()
