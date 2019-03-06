@@ -56,8 +56,8 @@ releases_issue_uri = "https://github.com/HallowXIII/pylaut/issues/%s"
 
 # General information about the project.
 project = 'PyLaut'
-copyright = '%d Cazim Hysi' % year
-author = 'Cazim Hysi'
+copyright = '%d Cazim "HallowXIII" Hysi and Robert "pthagnar" H. N. Williams' % year
+author = 'Cazim "HallowXIII" Hysi and Robert "pthagnar" H. N. Williams'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

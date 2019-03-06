@@ -135,7 +135,8 @@ class Phone(object):
         # does the feature set specify ipa lookup?
         if Phone._FEATURE_SET_IPA_LOOKUP and not Phone._feature_set_ipa_dict:
             try:
-                feature_set_ipa_vals_file = open(feature_set_ipa_filename, "r")
+                feature_set_ipa_vals_file = open(
+                    feature_set_ipa_filename, "r", encoding="utf-8")
                 feature_set_ipa_vals_raw = feature_set_ipa_vals_file.read(
                 ).splitlines()
                 feature_set_ipa_vals_file.close()
