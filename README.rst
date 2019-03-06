@@ -1,8 +1,8 @@
 PyLaut
 =======
 
-.. image:: https://img.shields.io/travis/HallowXIII/PyLaut/master.svg
-    :target: https://travis-ci.org/HallowXIII/PyLaut
+.. image:: https://travis-ci.com/HallowXIII/PyLaut.svg?branch=master
+    :target: https://travis-ci.com/HallowXIII/PyLaut
     :alt: Linux and MacOS Build Status
 .. image:: https://img.shields.io/appveyor/ci/HallowXIII/pylaut/master.svg
     :target: https://ci.appveyor.com/project/HallowXIII/pylaut
