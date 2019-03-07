@@ -1,2 +1,2 @@
-lark-parser==0.6.5
+lark-parser==0.6.6
 plac==1.0.0
