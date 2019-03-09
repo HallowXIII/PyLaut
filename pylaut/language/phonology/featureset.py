@@ -228,16 +228,6 @@ class FeatureModel():
 
         return (distant_symbols, len(distant_symbols))
 
-    def get_feature_list(self):
-        """
-        Returns a list of the values of features from self.features, using the
-        canonical order from self.features.
-        """
-        feature_list = list()
-        for feature in self.features:
-            feature_list += [self.features[feature]]
-        return feature_list
-
     def is_good_feature(self, feature):
         if feature in self.features:
             return True
@@ -319,11 +309,6 @@ class FeatureModel():
                 # every feature in the first-round candidates is checked to see
                 # if there is a diacritic, if there is we note what the
                 # diacritic is, otherwise we leave an ominous blank
-                # purged_diffs = [reverse_diacritics[tuple(db)] if
-                #                 tuple(db) in reverse_diacritics else
-                #                 None for db in utils.breakat(
-                #                     diffs, utils.powerset(range(
-                #                         1, len(diffs))))]
 
                 for brk in utils.powerset(range(1, len(diffs))):
                     purged_diffs = list()
