@@ -1,8 +1,6 @@
 import json
 from copy import deepcopy
-from pprint import pprint
 
-import pylaut.utils as utils
 from pylaut.language.phonology import featureset
 
 
@@ -14,6 +12,11 @@ class Phone(object):
     They are a collection [dictionary + canonical order] of phonological
     features with extra structure to make manipulating them easier.
     """
+
+    @staticmethod
+    def jdefault(o):
+        if isinstance(o, featureset.FeatureModel):
+            return o.to_json()
 
     def __init__(self, feature_model: featureset.FeatureModel, ipa_str=None):
 
@@ -42,7 +45,7 @@ class Phone(object):
         """
         Returns a JSON representation of the Phone
         """
-        return json.dumps(self.__dict__)
+        return json.dumps(self.__dict__, default=self.jdefault)
 
     def from_json(self, json_phone):
         """
