@@ -5,6 +5,7 @@ important, if not very glamorous, as it performs the unloved and thankless task
 of providing basic infrastructure.
 """
 
+import json
 import pathlib
 import pkgutil
 from typing import List, Optional, Tuple
@@ -28,6 +29,14 @@ class FeatureModel():
     # the longest distance between features that get_ipa_from_features will
     # regard
     _IGNORE_DISTANCE_GREATER_THAN = 5
+
+    JSON_OBJECT_NAME = "featuremodel"
+    JSON_VERSION_NO = "pre-alpha-1"
+
+    @staticmethod
+    def jdefault(o):
+        if isinstance(o, set):
+            return list(o)
 
     def __init__(self, feature_set_file_name, feature_set_path=None):
 
@@ -228,16 +237,6 @@ class FeatureModel():
 
         return (distant_symbols, len(distant_symbols))
 
-    def get_feature_list(self):
-        """
-        Returns a list of the values of features from self.features, using the
-        canonical order from self.features.
-        """
-        feature_list = list()
-        for feature in self.features:
-            feature_list += [self.features[feature]]
-        return feature_list
-
     def is_good_feature(self, feature):
         if feature in self.features:
             return True
@@ -319,11 +318,6 @@ class FeatureModel():
                 # every feature in the first-round candidates is checked to see
                 # if there is a diacritic, if there is we note what the
                 # diacritic is, otherwise we leave an ominous blank
-                # purged_diffs = [reverse_diacritics[tuple(db)] if
-                #                 tuple(db) in reverse_diacritics else
-                #                 None for db in utils.breakat(
-                #                     diffs, utils.powerset(range(
-                #                         1, len(diffs))))]
 
                 for brk in utils.powerset(range(1, len(diffs))):
                     purged_diffs = list()
@@ -351,3 +345,30 @@ class FeatureModel():
 
         final_glyph = final_choice[0] + "".join(final_choice[1])
         return final_glyph
+
+    def to_json(self):
+        """
+        Returns a JSON representation of the FeatureModel
+        """
+        return json.dumps(self.__dict__, default=self.jdefault)
+
+    def from_json(self, json_fm):
+        """
+        Reinitialise from JSON representation of the FeatureModel
+        """
+        pre_fm = json.loads(json_fm)
+
+        if "JSON_OBJECT_NAME" not in pre_fm:
+            raise Exception("JSON input malformed: no JSON_OBJECT_NAME given.")
+        if pre_fm["JSON_OBJECT_NAME"] != self.JSON_OBJECT_NAME:
+            raise Exception("JSON type error: was "
+                            "given {}, should be {}.".format(
+                                pre_fm["JSON_OBJECT_NAME"],
+                                self.JSON_OBJECT_NAME))
+        if pre_fm["JSON_VERSION_NO"] != self.JSON_VERSION_NO:
+            raise Exception("JSON version error: was "
+                            "given {}, should be {}.".format(
+                                pre_fm["JSON_VERSION_NO"],
+                                self.JSON_VERSION_NO))
+
+        self.__dict__ = pre_fm
