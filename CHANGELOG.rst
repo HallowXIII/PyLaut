@@ -1,7 +1,8 @@
 Changelog
 =========
 
-Release 1.0.0 (Development)
+Release 0.1.0 (Development)
 ---------------------------
 
-* (Add summary of changes here, along with author.)
+* Refactored Phone to use FeatureModel internally
+* Initial work

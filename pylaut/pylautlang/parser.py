@@ -47,7 +47,7 @@ def phoneme_list_from_string(s):
     for ch in s:
         if curr == []:
             curr.append(ch)
-        elif ch in p._feature_set_ipa_diacritics:
+        elif ch in p.feature_model._ipa_diacritics:
             curr.append(ch)
         else:
             try:
