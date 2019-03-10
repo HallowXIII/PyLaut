@@ -134,7 +134,6 @@ class Phonology(object):
             raise TypeError("{} not a {} object".format(
                 phoneme, self.phoneme_cls))
         self.phonemes.add(phoneme)
-        self.phoneme_frequencies[phoneme] = None
 
     def get_vowels(self):
         """
@@ -190,16 +189,16 @@ class Phonology(object):
         return phoneme_dict
 
     # phoneme frequency
-    def set_phoneme_frequency_from_list(self, part, phoneme_list_list):
+    def set_phoneme_frequency_from_list(self, part, phoneme_list):
         """
-        Given a [possibly long] list of lists of phonemes and a syllable part
+        Given a [possibly long] list of phonemes and a syllable part
         (onset,nucleus,coda), updates self.----_frequencies with appropriate,
         normalised values
         """
 
         freqdict = dict()
-        for phoneme_list in phoneme_list_list:
-            phoneme_string = "".join([ph.__repr__() for ph in phoneme_list])
+        for phoneme in phoneme_list:
+            phoneme_string = repr(phoneme)
             if phoneme_string in freqdict:
                 freqdict[phoneme_string] += 1
             else:
@@ -228,10 +227,8 @@ class Phonology(object):
                 self.onset_frequencies, self.nucleus_frequencies,
                 self.coda_frequencies
         ]:
-            for sequence in freqdict:
-                # first condition is to skip null onsets,codas etcs
-                if len(sequence) > 1 and phoneme.symbol in sequence:
-                    totalfreq += freqdict[sequence]
+            # first condition is to skip null onsets,codas etcs
+            totalfreq += freqdict[repr(phoneme)]
         # each freqdict is normalised between 0 and 1. adding them up makes it
         # between 0 and 3, therefore this renormalises it
 
@@ -328,28 +325,3 @@ class Phonology(object):
             subm = len(self.get_vowels_in_subsystem(subsystem, "-"))
             count_dict[subsystem]["+"], count_dict[subsystem]["-"] = subp, subm
         return count_dict
-
-
-###############################################################################
-
-if __name__ == '__main__':
-    vs = ["aː", "iː", "uː", "a", "i", "u", "ə"]
-
-    cs = ["p", "t", "k", "s", "x", "r", "l", "w"]
-
-    ph = Phonology(vs + cs)
-
-    print(ph.phonemes)
-
-    ph.define_vowel_subsystem("long", autoadd=True)
-
-    print(ph.vowel_subsystems)
-    print(ph.get_phonemes_with_feature("voice", "-"))
-    fd = {"voice": "-", "continuant": "-"}
-    print(ph.get_phonemes_with_features(fd))
-
-    j = ph.to_json()
-
-    f = Phonology()
-    f.from_json(j)
-    print(f.get_phonemes_with_feature("voice", "-"))
