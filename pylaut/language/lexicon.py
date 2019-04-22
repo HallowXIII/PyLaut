@@ -30,7 +30,7 @@ class Lexicon(object):
         p = pathlib.Path(file_name_or_path)
         with p.open('w') as outf:
             outf.write(f"#{self.language}\n")
-            outf.write("#IPA Orthography Gloss\n")
+            outf.write("#IPA\tOrthography\tGloss\n")
             outf.writelines(e._serialize() for e in self.entries)
 
     def get_random_entry(self):
@@ -44,7 +44,7 @@ class Lexicon(object):
 
     def from_string(self, raw_lexicon):
         read_words = [x for x in raw_lexicon.splitlines() if x and x[0] != "#"]
-        split_words = [x.split() for x in read_words]
+        split_words = [x.split('\t') for x in read_words]
 
         # make Lexicons
         for line in split_words:
@@ -56,7 +56,7 @@ class Lexicon(object):
         self.date = (value, system)
 
     def add_entry(self, lexicon_entry):
-        self.entries += [lexicon_entry]
+        self.entries.append(lexicon_entry)
 
     def init_phonology(self):
         # extract phonemes
@@ -100,7 +100,7 @@ class LexiconEntry(object):
         phonetic = repr(self).strip("*/[]<>")
         orthography = self.orthography
         gloss = self.gloss
-        return f"{phonetic} {orthography} {gloss}\n"
+        return f"{phonetic}\t{orthography}\t{gloss}\n"
 
     def __repr__(self):
         if self.phonetic:

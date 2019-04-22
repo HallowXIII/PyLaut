@@ -1,30 +1,43 @@
-monophone
-monophone_ipa
-monophone_ipa_diacritics
-
-[syllabic]
-[consonantal]
-[continuant]
-[sonorant]
-[nasal]
-[labial]
-[dental]
-[apical]
-[coronal]
-[dorsal]
-[voice]
-[trill]
-[flap]
-[lateral]
-[pharyngeal]
-[glottal]
-[front]
-[back]
-[high]
-[low]
-[round]
-[tense]
-[breathy]
-[aspirated]
-[long]
-[sibilant]
+name: monophone
+segments: monophone_ipa
+diacritics: monophone_ipa_diacritics
+features:
+  - syllabic
+  - consonantal
+  - continuant
+  - sonorant
+  - nasal
+  - labial
+  - dental
+  - apical
+  - coronal
+  - dorsal
+  - voice
+  - trill
+  - flap
+  - lateral
+  - pharyngeal
+  - glottal
+  - front
+  - back
+  - high
+  - low
+  - round
+  - tense
+  - breathy
+  - aspirated
+  - long
+  - sibilant
+feature_mapping:
+  # this should probably be Dict[str, Dict[str, Ternary]]
+  consonantal: consonantal
+  low_vowel: low
+  high_vowel: high
+  front_vowel: front
+  back_vowel: back
+  round_vowel: round
+  voiced: voice
+  continuant: continuant
+  sonorant: sonorant
+  lateral: lateral
+  nasal: nasal

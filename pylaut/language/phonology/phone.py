@@ -18,6 +18,12 @@ class Phone(object):
         if isinstance(o, featureset.FeatureModel):
             return o.to_json()
 
+    @classmethod
+    def empty(cls, fm=None):
+        new = cls(fm)
+        new.set_features_null(new.feature_model.features)
+        return new
+
     def __init__(self, feature_model: featureset.FeatureModel, ipa_str=None):
 
         self.feature_model = feature_model
@@ -102,8 +108,8 @@ class Phone(object):
             if feature_name not in self.feature_model.features:
                 raise Exception("Feature '{}' not found in Phone's "
                                 "feature set".format(feature_name))
-            elif (feature_value not in self.feature_model.
-                  _possible_feature_values):
+            elif (feature_value not in
+                  self.feature_model._possible_feature_values):
                 raise Exception("'{}' not a valid value for feature in "
                                 "Phone".format(feature_value))
             else:
@@ -221,31 +227,32 @@ class Phone(object):
         return deepcopy(self)
 
 
-class MonoPhone(Phone):
+class RichPhone(Phone):
     """
-    MonoPhones are Phones which use the MONOPHONE feature-set. For further
-    information, please refer to Phone.
+    RichPhones are Phones which are enriched with additional information by
+    their feature-set. For further information, please refer to Phone.
     """
 
-    _FEATURE_SET_NAME = "monophone"
+    def __init__(self, fm, ipa_string=None):
+        super().__init__(fm, ipa_string)
+        self.JSON_OBJECT_NAME = "Phone/RichPhone"
+        self.JSON_VERSION_NO = "RichPhone-pre-alpha-1"
 
-    _CONSONANTAL_FEATURE = "consonantal"
-    _LO_V_FEATURE, _HI_V_FEATURE = "low", "high"
-    _FR_V_FEATURE, _BA_V_FEATURE = "front", "back"
-    _RO_V_FEATURE = "round"
+        self._FEATURE_SET_NAME = self.feature_model.hkeys['']
 
-    _VOI_C_FEATURE = "voice"
+        self._CONSONANTAL_FEATURE = "consonantal"
+        self._LO_V_FEATURE, self._HI_V_FEATURE = "low", "high"
+        self._FR_V_FEATURE, self._BA_V_FEATURE = "front", "back"
+        self._RO_V_FEATURE = "round"
 
-    _CONT_C_FEATURE = "continuant"
-    _SON_C_FEATURE = "sonorant"
+        self._VOI_C_FEATURE = "voice"
 
-    _LAT_C_FEATURE = "lateral"
-    _NAS_C_FEATURE = "nasal"
+        self._CONT_C_FEATURE = "continuant"
+        self._SON_C_FEATURE = "sonorant"
 
-    def __init__(self, ipa_string=None):
-        super().__init__(featureset.FeatureModel('monophone'), ipa_string)
-        self.JSON_OBJECT_NAME = "Phone/MonoPhone"
-        self.JSON_VERSION_NO = "MonoPhone-pre-alpha-1"
+        self._LAT_C_FEATURE = "lateral"
+        self._NAS_C_FEATURE = "nasal"
+
         if ipa_string:
             self.set_features_from_ipa(ipa_string)
             self.set_symbol_from_features()
@@ -256,7 +263,7 @@ class MonoPhone(Phone):
 
     # vowel properties
     def is_vowel(self):
-        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,
+        if self.feature_is(self._CONSONANTAL_FEATURE,
                            self.feature_model._FALSE_FEATURE):
             return True
         else:
@@ -264,14 +271,14 @@ class MonoPhone(Phone):
 
     def is_low_vowel(self):
         if self.is_vowel() and self.feature_is(
-                MonoPhone._LO_V_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._LO_V_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_high_vowel(self):
         if self.is_vowel() and self.feature_is(
-                MonoPhone._HI_V_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._HI_V_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
@@ -285,14 +292,14 @@ class MonoPhone(Phone):
 
     def is_front_vowel(self):
         if self.is_vowel() and self.feature_is(
-                MonoPhone._FR_V_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._FR_V_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_back_vowel(self):
         if self.is_vowel() and self.feature_is(
-                MonoPhone._BA_V_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._BA_V_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
@@ -306,7 +313,7 @@ class MonoPhone(Phone):
 
     def is_rounded_vowel(self):
         if self.is_vowel() and self.feature_is(
-                MonoPhone._RO_V_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._RO_V_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
@@ -314,7 +321,7 @@ class MonoPhone(Phone):
     # consonant properties
 
     def is_consonant(self):
-        if self.feature_is(MonoPhone._CONSONANTAL_FEATURE,
+        if self.feature_is(self._CONSONANTAL_FEATURE,
                            self.feature_model._TRUE_FEATURE):
             return True
         else:
@@ -322,30 +329,30 @@ class MonoPhone(Phone):
 
     def is_voiced_consonant(self):
         if self.is_consonant() and self.feature_is(
-                MonoPhone._VOI_C_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._VOI_C_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_stop(self):
         if self.is_consonant() and self.feature_is(
-                MonoPhone._CONT_C_FEATURE, self.feature_model._FALSE_FEATURE):
+                self._CONT_C_FEATURE, self.feature_model._FALSE_FEATURE):
             return True
         else:
             return False
 
     def is_nasal_stop(self):
         if self.is_stop() and self.feature_is(
-                MonoPhone._NAS_C_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._NAS_C_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_approximant(self):
         if self.is_consonant():
-            if self.feature_is(MonoPhone._CONT_C_FEATURE,
+            if self.feature_is(self._CONT_C_FEATURE,
                                self.feature_model._TRUE_FEATURE):
-                if self.feature_is(MonoPhone._SON_C_FEATURE,
+                if self.feature_is(self._SON_C_FEATURE,
                                    self.feature_model._TRUE_FEATURE):
                     return True
                 else:
@@ -357,16 +364,16 @@ class MonoPhone(Phone):
 
     def is_lateral_approximant(self):
         if self.is_approximant() and self.feature_is(
-                MonoPhone._LAT_C_FEATURE, self.feature_model._TRUE_FEATURE):
+                self._LAT_C_FEATURE, self.feature_model._TRUE_FEATURE):
             return True
         else:
             return False
 
     def is_fricative(self):
         if self.is_consonant():
-            if self.feature_is(MonoPhone._CONT_C_FEATURE,
+            if self.feature_is(self._CONT_C_FEATURE,
                                self.feature_model._TRUE_FEATURE):
-                if self.feature_is(MonoPhone._SON_C_FEATURE,
+                if self.feature_is(self._SON_C_FEATURE,
                                    self.feature_model._FALSE_FEATURE):
                     return True
                 else:

@@ -1,4 +1,4 @@
-from pylaut.language.phonology.phone import MonoPhone
+from pylaut.language.phonology.monophone import MonoPhone
 import json
 
 
