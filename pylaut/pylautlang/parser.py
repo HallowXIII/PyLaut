@@ -4,19 +4,20 @@ code, as well as some convenience functions for easily accessing the PyLaut
 language.
 """
 
-from lark import Lark, ParseError, Transformer
+import functools as ft
+import pathlib
 from pkgutil import get_data
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
+from lark import Lark, ParseError, Transformer
+
+from pylaut.change import change_functions
+from pylaut.change.change import Change, ChangeGroup, This, Transducer
+from pylaut.change.soundlaw import SoundLaw, SoundLawGroup
 from pylaut.language.phonology.phone import Phone
 from pylaut.language.phonology.phonology import Phoneme
 from pylaut.language.phonology.word import Syllable
-from pylaut.change.change import Change, This, ChangeGroup, Transducer
-from pylaut.change import change_functions
-from pylaut.change.soundlaw import SoundLaw, SoundLawGroup
 from pylaut.pylautlang.lib import get_library, make_predicate
-
-import functools as ft
-import pathlib
-from typing import List, Callable, Dict, Union, Any, Optional, Tuple
 
 Features = Dict[str, str]
 PhonemeList = List[Phoneme]
@@ -924,8 +925,8 @@ class PyLautLang(Transformer):
         except KeyError:
             return Change()
 
-    def eqexpr(self,
-               args: List[Optional[PyLautAtom]]) -> Callable[[Transducer], bool]:
+    def eqexpr(self, args: List[Optional[PyLautAtom]]
+               ) -> Callable[[Transducer], bool]:
         """
         Translate equality expressions. Uses singledispatch to
         switch on the type of the argument and produce equality
