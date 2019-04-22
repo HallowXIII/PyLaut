@@ -8,7 +8,12 @@ of providing basic infrastructure.
 import json
 import pathlib
 import pkgutil
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
+import yaml
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 import pylaut.utils as utils
 
@@ -50,6 +55,7 @@ class FeatureModel():
         self.features = list()
         self._ipa_dict = dict()
         self._ipa_diacritics = dict()
+        self._config = dict()
 
         self.load_feature_set()
 
@@ -85,7 +91,7 @@ class FeatureModel():
                 Please double-check the file name and path!""" from ie
 
     def _load_feature_set_ipa_tables(
-            self, feature_set_raw: List[str],
+            self, feature_set: Dict[str, Any],
             dir_path: Optional[str]) -> Optional[Tuple[str, str]]:
         """
         Helper method to load IPA lookup tables from disk. Takes
@@ -101,19 +107,15 @@ class FeatureModel():
         :return-type: Optional[(str, str)]
         """
 
-        if not len(feature_set_raw) > 2:
+        if 'segments' not in feature_set or 'diacritics' not in feature_set:
             raise ValueError(
                 'Feature set file does not define lookup headers!')
-        if not (feature_set_raw[1]
-                or feature_set_raw[2]) or feature_set_raw[1] == '0':
+        if not feature_set['segments']:
             # The feature set does not define IPA lookup
             return None
 
-        ipa_file_name = feature_set_raw[1]
-        if feature_set_raw[2] != '0':
-            ipa_dcs_file_name = feature_set_raw[2]
-        else:
-            ipa_dcs_file_name = None
+        ipa_file_name = feature_set['segments']
+        ipa_dcs_file_name = feature_set['diacritics']
 
         if not dir_path:
             try:
@@ -153,19 +155,17 @@ class FeatureModel():
 
         feature_set_raw = self._load_feature_set_file(
             self._feature_set_file_name, self._feature_set_path)
-        feature_set_lines = feature_set_raw.split('\n')
+        # feature_set_lines = feature_set_raw.split('\n')
+
+        feature_set = yaml.load(feature_set_raw, Loader=Loader)
+
         ipa_files_raw = self._load_feature_set_ipa_tables(
-            feature_set_lines, self._feature_set_path)
+            feature_set, self._feature_set_path)
         if ipa_files_raw:
             self._feature_set_ipa_lookup = True
 
-        feature_set = [
-            line[1:-1] for line in feature_set_lines
-            if line and line[0] == "[" and line[-1] == "]"
-        ]
-
         # assign properties
-        self.features = feature_set
+        self.features = feature_set['features']
 
         # does the feature set specify ipa lookup?
         if self._feature_set_ipa_lookup and not self._ipa_dict:

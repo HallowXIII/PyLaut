@@ -136,7 +136,7 @@ def epenthesis(this, phoneme):
 
 
 def resyllabify(*args):
-    return change.Resyllabify()
+    return change_functions.Resyllabify()
 
 
 def get_library():

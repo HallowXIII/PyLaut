@@ -9,13 +9,19 @@ from pkgutil import get_data
 from pylaut.language.phonology.phone import Phone
 from pylaut.language.phonology.phonology import Phoneme
 from pylaut.language.phonology.word import Syllable
-from pylaut.change.change import Change, This, ChangeGroup
+from pylaut.change.change import Change, This, ChangeGroup, Transducer
 from pylaut.change import change_functions
 from pylaut.change.soundlaw import SoundLaw, SoundLawGroup
 from pylaut.pylautlang.lib import get_library, make_predicate
 
 import functools as ft
 import pathlib
+from typing import List, Callable, Dict, Union, Any, Optional, Tuple
+
+Features = Dict[str, str]
+PhonemeList = List[Phoneme]
+PyLautAtom = Union[Phoneme, PhonemeList, Features]
+Library = Dict[str, Callable[[PyLautAtom], PyLautAtom]]
 
 
 def get_parser():
@@ -32,7 +38,7 @@ def get_parser():
     return pllg
 
 
-def phoneme_list_from_string(s):
+def phoneme_list_from_string(s: str) -> List[Phoneme]:
     """
     An ad-hoc tokenizing function that creates a list of Phonemes from
     an IPA string. Returns a tuple of Phoneme objects; the zero Phoneme
@@ -62,7 +68,7 @@ def phoneme_list_from_string(s):
     return tuple(ret)
 
 
-def flatten(lst):
+def flatten(lst: List[List[object]]) -> List[object]:
     """
     Flattens a list of lists by one level.
 
@@ -71,7 +77,9 @@ def flatten(lst):
     return [item for sublist in lst for item in sublist]
 
 
-def compile(scstring, lib=get_library(), featureset=None):
+def compile(scstring: str,
+            lib: Library = get_library(),
+            featureset: Optional[str] = None) -> List[SoundLaw]:
     """
     A convenience function that parses a sound change string,
     transforms it into a list of SoundLaw objects and returns the list.
@@ -89,7 +97,9 @@ def compile(scstring, lib=get_library(), featureset=None):
     return change
 
 
-def compile_one(scstring, lib=get_library(), featureset=None):
+def compile_one(scstring: str,
+                lib: Library = get_library(),
+                featureset: Optional[str] = None) -> SoundLaw:
     """
     This function acts like compile, but instead of outputting a list
     of sound laws, will output only one SoundLaw object. Convenient
@@ -108,7 +118,9 @@ def compile_one(scstring, lib=get_library(), featureset=None):
     return change[0]
 
 
-def parse_file(file_path, lib=get_library(), featureset=None):
+def parse_file(file_path: str,
+               lib: Library = get_library(),
+               featureset: Optional[str] = None) -> List[SoundLaw]:
     """
     Function that loads a PyLaut language program from disk,
     then compiles it into a list of sound changes.
@@ -127,7 +139,7 @@ def parse_file(file_path, lib=get_library(), featureset=None):
     return compile(scstr, lib, featureset)
 
 
-def validate(scstring):
+def validate(scstring: str) -> bool:
     """
     A function that checks whether a given PyLaut language program is
     syntactically valid. This function will not catch ParseErrors, so
@@ -154,7 +166,7 @@ class PyLautLang(Transformer):
         self.featureset = featureset
         self.parser = get_parser()
 
-    def compile(self, scstring):
+    def compile(self, scstring: str) -> List[SoundLaw]:
         """
         Convenience method that unifies the steps of parsing and transforming
         inside a single method. Delegated to by all of the module-level
@@ -167,7 +179,7 @@ class PyLautLang(Transformer):
         change = self.transform(t)
         return change
 
-    def start(self, l):
+    def start(self, l: List[SoundLaw]) -> List[SoundLaw]:
         """
         This method parses an entire PyLaut language program.
         Since the parse is bottom-up, the argument to this is
@@ -179,7 +191,7 @@ class PyLautLang(Transformer):
         """
         return l
 
-    def meta(self, args):
+    def meta(self, args: List[str]) -> Tuple[str, str, str]:
         """
         Translates the Meta tags of sound law nodes. The actual information
         assignment is done in those methods, so this just takes the tokens and
@@ -190,7 +202,7 @@ class PyLautLang(Transformer):
         """
         return ('META', args[0], args[1])
 
-    def block(self, children):
+    def block(self, children: List[Change]) -> List[Change]:
         """
         Translates the contents of a sound law. Since the parse is bottom-up,
         this will be a list of change objects, so all that needs to be done is
@@ -201,7 +213,7 @@ class PyLautLang(Transformer):
         """
         return children
 
-    def group_block(self, children):
+    def group_block(self, children: List[SoundLaw]) -> List[SoundLaw]:
         """
         Translates the contents of a sound law group. Works exactly the same
         way as the normal block method, except for the argument type.
@@ -211,7 +223,8 @@ class PyLautLang(Transformer):
         """
         return children
 
-    def law(self, args):
+    def law(self,
+            args: List[Union[Tuple[str, str], List[Change]]]) -> SoundLaw:
         """
         Translates an entire sound law from CHANGE to END. Creates a SoundLaw
         object, assigns the meta data and returns it.
@@ -250,7 +263,8 @@ class PyLautLang(Transformer):
             name=name,
             description=description)
 
-    def group(self, args):
+    def group(self, args: List[Union[Tuple[str, str], List[SoundLaw]]]
+              ) -> SoundLawGroup:
         """
         Works exactly like the law method, except that it translates a group
         of sound laws rather than sound changes.
@@ -289,7 +303,7 @@ class PyLautLang(Transformer):
             name=name,
             description=description)
 
-    def phoneme(self, l):
+    def phoneme(self, l: List[str]) -> Tuple[Phoneme]:
         """
         Method to translate phoneme expressions. See the documentation
         of phoneme_list_from_string for more.
@@ -300,7 +314,7 @@ class PyLautLang(Transformer):
         pl = phoneme_list_from_string(l[0])
         return pl
 
-    def phoneme_list(self, l):
+    def phoneme_list(self, l: List[Tuple[Phoneme]]) -> Tuple[Tuple[Phoneme]]:
         """
         Method for translating phoneme lists. Simply returns a tuple of
         translated phoneme expressions, that is, a tuple of tuples.
@@ -316,7 +330,7 @@ class PyLautLang(Transformer):
 
         return tuple(args)
 
-    def simple_unconditional(self, args):
+    def simple_unconditional(self, args: List[Phoneme]) -> Change:
         """
         Translates the most basic sound change. The call to replace_phonemes
         is a standard to be able to deal with multiple-phoneme domains; it
@@ -331,7 +345,7 @@ class PyLautLang(Transformer):
         codomain = args[1]
         return change_functions.replace_phonemes(domain, codomain)
 
-    def multiple_unconditional(self, args):
+    def multiple_unconditional(self, args: List[Phoneme]) -> Change:
         """
         simple_unconditional, but for phoneme lists. Works exactly the
         same way, but the domain and codomain are zipped together to create
@@ -348,7 +362,7 @@ class PyLautLang(Transformer):
         ])
         return ch
 
-    def change_feature(self, args):
+    def change_feature(self, args: List[Features]) -> Change:
         """
         This translates unconditional changes where the domain and codomain
         are both feature expressions. The change_feature function from the
@@ -361,9 +375,12 @@ class PyLautLang(Transformer):
         """
         domain, codomain = args[0], args[1]
         ch = Change()
-        for name, value in codomain.items():
-            ch = ch.do(lambda td: change_functions.change_feature(
-                td.phoneme, name, value))
+
+        def change_features_td(td, cd=codomain):
+            p = change_functions.change_features_map(td.phoneme, cd)
+            return p
+
+        ch = ch.do(change_features_td)
 
         def match_features(p, fdict=domain):
             """
@@ -379,7 +396,8 @@ class PyLautLang(Transformer):
         ch = ch.to(This.forall(Phone)(match_features))
         return ch
 
-    def replace_by_feature(self, args):
+    def replace_by_feature(
+            self, args: List[Union[Features, Tuple[Phoneme]]]) -> Change:
         """
         This method translates changes where the domain is a feature expression
         and the codomain is a phoneme. Essentially the same as change_feature,
@@ -405,7 +423,7 @@ class PyLautLang(Transformer):
             This.forall(Phone)(match_features))
         return ch
 
-    def positive_condition(self, args):
+    def positive_condition(self, args: List[Callable[[Transducer], bool]]):
         """
         Dummy node function for non-negated conditions.
         Delegates straight through to the actual condition.
@@ -667,8 +685,8 @@ class PyLautLang(Transformer):
                 for k, v in arg.items():
                     conditions.append(
                         This.at(
-                            Phone, pos,
-                            lambda p, k=k, v=v: p.feature_is(k, v)))
+                            Phone,
+                            pos, lambda p, k=k, v=v: p.feature_is(k, v)))
             else:
                 # The argument is a Phone
                 # Perform by-symbol matching
@@ -773,8 +791,9 @@ class PyLautLang(Transformer):
 
                 def get_at_phoneme_offset(this, p=position):
                     idx = this.phonemes.index(this.phoneme)
-                    if idx < 0 or idx >= len(this.phonemes):
-                        return None
+                    rel = idx + p
+                    if rel < 0 or rel >= len(this.phonemes):
+                        return Phoneme.empty()
                     return this.phonemes[this.phonemes.index(this.phoneme) + p]
 
                 return get_at_phoneme_offset
@@ -797,7 +816,7 @@ class PyLautLang(Transformer):
 
                 return get_at_phoneme_index
 
-    def offset(self, args):
+    def offset(self, args: int) -> Tuple[str, int]:
         """
         Translates relative index expressions. Basically a tagged integer to
         make it possible for the index method to switch on the argument type.
@@ -805,7 +824,8 @@ class PyLautLang(Transformer):
         os = args[0]
         return ("@", os)
 
-    def member(self, args):
+    def member(self, args: List[Union[Callable[[Transducer], PyLautAtom], str]]
+               ) -> Callable[[PyLautAtom], PyLautAtom]:
         """
         Translates member access on transducer data. Right now all the
         legal options are hard-coded in. In the future, it might be
@@ -823,12 +843,15 @@ class PyLautLang(Transformer):
             entity = entity[1]
 
         if field == 'nucleus':
+
             def ret(td, f=entity):
                 return f(td).get_nucleus()
         elif field == 'onset':
+
             def ret(td, f=entity):
                 return f(td).get_onset()
         elif field == 'coda':
+
             def ret(td, f=entity):
                 return f(td).get_coda()
         elif field == 'quality':
@@ -846,6 +869,7 @@ class PyLautLang(Transformer):
 
             ret = get_vowel_quality
         elif field == 'is_monosyllable':
+
             def ret(td, f=entity):
                 return f(td).is_monosyllable()
         else:
@@ -876,11 +900,12 @@ class PyLautLang(Transformer):
         """
         return [(f, "-") for f in flatten(args)]
 
-    def words(self, args):
+    def words(self, args: str) -> str:
         """Translates bare-word text."""
         return args
 
-    def fcall(self, children):
+    def fcall(self,
+              children: List[Union[str, Optional[PyLautAtom]]]) -> Change:
         """
         Looks up a function name in the function library,
         a dictionary passed to the PyLautLang object at init time.
@@ -899,7 +924,8 @@ class PyLautLang(Transformer):
         except KeyError:
             return Change()
 
-    def eqexpr(self, args):
+    def eqexpr(self,
+               args: List[Optional[PyLautAtom]]) -> Callable[[Transducer], bool]:
         """
         Translate equality expressions. Uses singledispatch to
         switch on the type of the argument and produce equality

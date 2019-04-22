@@ -86,6 +86,17 @@ def change_feature(phone: Phone, name: str, value: str) -> Phone:
     return np
 
 
+def change_features_map(phone: Phone, mapping: dict) -> Phone:
+    np = copy.deepcopy(phone)
+    for name, value in mapping.items():
+        if value == '+':
+            np.set_features_true(name)
+        elif value == '-':
+            np.set_features_false(name)
+    np.set_symbol_from_features()
+    return np
+
+
 def delete_phonemes(syllable: Syllable,
                     phonemes: Iterable[Phoneme]) -> Syllable:
     syllable.phonemes = [p for p in syllable.phonemes if p not in phonemes]
@@ -124,3 +135,17 @@ def is_diphthong(nucleus: Iterable[Phone], diphthong: Iterable[str]) -> bool:
         except AttributeError:
             return False
     return True
+
+
+def match_features(fdict):
+    """
+    Function that closes over the change domain.
+    Matches the domain feature values with the
+    target phoneme's features.
+    """
+    def _match_features(p, fdict=fdict):
+        for name, value in fdict.items():
+            if not p.feature_is(name, value):
+                return False
+        return True
+    return _match_features
